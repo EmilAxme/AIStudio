@@ -1,0 +1,5 @@
+AIStudio.xcodeproj/
+DerivedData/
+.build/
+.swiftpm/
+.DS_Store

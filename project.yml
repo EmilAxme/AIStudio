@@ -1,0 +1,24 @@
+name: AIStudio
+options:
+  deploymentTarget:
+    iOS: '16.0'
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    IPHONEOS_DEPLOYMENT_TARGET: '16.0'
+targets:
+  AIStudio:
+    type: application
+    platform: iOS
+    deploymentTarget: '16.0'
+    sources:
+      - path: AIStudio
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.labs.fviu
+        INFOPLIST_FILE: AIStudio/App/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: '1'
+        SWIFT_VERSION: '5.0'
+        ASSETCATALOG_COMPILER_APPICON_NAME: ''

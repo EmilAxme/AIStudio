@@ -1,0 +1,20 @@
+import Foundation
+
+enum ChatMessageSender {
+    case user
+    case assistant
+}
+
+struct ChatMessage: Identifiable {
+    let id: UUID
+    let sender: ChatMessageSender
+    let text: String
+    let title: String?
+
+    init(id: UUID = UUID(), sender: ChatMessageSender, text: String, title: String? = nil) {
+        self.id = id
+        self.sender = sender
+        self.text = text
+        self.title = title
+    }
+}
