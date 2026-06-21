@@ -1,4 +1,5 @@
 import UIKit
+import ApphudSDK
 
 final class PlanOptionView: UIControl {
     private let borderGradient = GradientView(colors: AppColor.inputGradient)
@@ -13,7 +14,10 @@ final class PlanOptionView: UIControl {
         didSet { updateAppearance() }
     }
 
-    init(plan: SubscriptionPlan) {
+    /// The product this row represents, set once the paywall loads.
+    var product: ApphudProduct?
+
+    init(showsSaveBadge: Bool, placeholderTitle: String) {
         super.init(frame: .zero)
         layer.cornerRadius = 24
         clipsToBounds = true
@@ -23,10 +27,10 @@ final class PlanOptionView: UIControl {
         inner.layer.cornerRadius = 24 - borderWidth
         inner.isUserInteractionEnabled = false
 
-        titleLabel.text = plan.title
+        titleLabel.text = placeholderTitle
         titleLabel.font = AppFont.font(16, .medium)
         titleLabel.textColor = .white
-        detailLabel.text = plan.detail
+        detailLabel.text = " "
         detailLabel.font = AppFont.font(14, .regular)
         detailLabel.textColor = UIColor(hex: 0x606060)
 
@@ -61,11 +65,24 @@ final class PlanOptionView: UIControl {
             badgeLabel.trailingAnchor.constraint(equalTo: badge.trailingAnchor, constant: -14),
             badgeLabel.centerYAnchor.constraint(equalTo: badge.centerYAnchor)
         ])
-        badge.isHidden = plan != .yearly
+        badge.isHidden = !showsSaveBadge
         updateAppearance()
     }
 
     required init?(coder: NSCoder) { nil }
+
+    /// Populates the row from a loaded product: title = plan + per-week price,
+    /// detail = full localized price. All amounts come from StoreKit, never hard-coded.
+    func configure(product: ApphudProduct, planName: String) {
+        self.product = product
+        let trial = product.hasFreeTrial ? " · Free trial" : ""
+        if let weekly = product.weeklyPriceString {
+            titleLabel.text = "\(planName)  \(weekly) / week\(trial)"
+        } else {
+            titleLabel.text = "\(planName)\(trial)"
+        }
+        detailLabel.text = product.displayPriceString ?? " "
+    }
 
     private func updateAppearance() {
         borderGradient.update(colors: isSelected

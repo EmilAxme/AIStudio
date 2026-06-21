@@ -1,17 +1,34 @@
 import UIKit
+import ApphudSDK
 
 final class PaywallViewController: UIViewController {
     private let topGlow = GlowView(tint: UIColor(hex: 0x5A3A66), intensity: 0.55)
-    private let yearly = PlanOptionView(plan: .yearly)
-    private let monthly = PlanOptionView(plan: .monthly)
+    private let yearly = PlanOptionView(showsSaveBadge: true, placeholderTitle: "Year")
+    private let monthly = PlanOptionView(showsSaveBadge: false, placeholderTitle: "Month")
     private let unlock = GradientButton(title: "Unlock now")
-    private var selectedPlan: SubscriptionPlan = .yearly
+    private let restoreLabel = UILabel()
+    private var selectedPlanView: PlanOptionView
+
+    private let subscription: SubscriptionService
+
+    /// Invoked after the user successfully unlocks premium (purchase or restore),
+    /// so the gated action that opened this paywall can proceed without a relaunch.
+    var onUnlocked: (() -> Void)?
+
+    init(subscription: SubscriptionService = AppServices.subscription) {
+        self.subscription = subscription
+        self.selectedPlanView = yearly
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { nil }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColor.background
         setupView()
         updateSelection()
+        loadProducts()
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -65,11 +82,17 @@ final class PaywallViewController: UIViewController {
         let footer = UIStackView()
         footer.axis = .horizontal
         footer.distribution = .equalCentering
-        ["Privacy Policy", "Restore Purchases", "Terms of Use"].forEach { text in
+        let footerItems = ["Privacy Policy", "Restore Purchases", "Terms of Use"]
+        for text in footerItems {
             let label = UILabel()
             label.text = text
             label.textColor = AppColor.mutedText
             label.font = AppFont.font(11, .regular)
+            if text == "Restore Purchases" {
+                label.isUserInteractionEnabled = true
+                label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(restoreTapped)))
+                restoreLabel.text = text  // keep a typed reference for loading state
+            }
             footer.addArrangedSubview(label)
         }
 
@@ -133,17 +156,124 @@ final class PaywallViewController: UIViewController {
         return view
     }
 
-    private func updateSelection() {
-        yearly.isSelected = selectedPlan == .yearly
-        monthly.isSelected = selectedPlan == .monthly
+    // MARK: - Products
+
+    /// Loads the `main` paywall and binds real products to the two plan rows.
+    private func loadProducts() {
+        unlock.setLoading(true)
+        Task { [weak self] in
+            guard let self else { return }
+            let paywall = await self.subscription.loadPaywall()
+            await MainActor.run {
+                self.unlock.setLoading(false)
+                guard let products = paywall?.products, !products.isEmpty else {
+                    self.presentLoadFailure()
+                    return
+                }
+                self.bind(products: products)
+            }
+        }
     }
 
-    @objc private func yearlyTapped() { selectedPlan = .yearly; updateSelection() }
-    @objc private func monthlyTapped() { selectedPlan = .monthly; updateSelection() }
+    /// Assigns products to the yearly/monthly rows by their subscription period,
+    /// falling back to source order when the period is unknown.
+    private func bind(products: [ApphudProduct]) {
+        let yearlyProduct = products.first { $0.skProduct?.subscriptionPeriod?.unit == .year }
+        let monthlyProduct = products.first { $0.skProduct?.subscriptionPeriod?.unit == .month }
+
+        let resolvedYearly = yearlyProduct ?? products.first
+        let resolvedMonthly = monthlyProduct ?? products.dropFirst().first ?? products.first
+
+        if let resolvedYearly { yearly.configure(product: resolvedYearly, planName: "Year") }
+        if let resolvedMonthly { monthly.configure(product: resolvedMonthly, planName: "Month") }
+
+        // Keep the previously selected row if it now has a product; else default to yearly.
+        if selectedPlanView.product == nil { selectedPlanView = yearly }
+        updateSelection()
+    }
+
+    private func presentLoadFailure() {
+        let alert = UIAlertController(
+            title: "Не удалось загрузить",
+            message: "Подписки временно недоступны. Проверьте соединение и попробуйте ещё раз.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Повторить", style: .default) { [weak self] _ in self?.loadProducts() })
+        alert.addAction(UIAlertAction(title: "Закрыть", style: .cancel))
+        present(alert, animated: true)
+    }
+
+    // MARK: - Selection
+
+    private func updateSelection() {
+        yearly.isSelected = selectedPlanView === yearly
+        monthly.isSelected = selectedPlanView === monthly
+    }
+
+    @objc private func yearlyTapped() { selectedPlanView = yearly; updateSelection() }
+    @objc private func monthlyTapped() { selectedPlanView = monthly; updateSelection() }
+
+    // MARK: - Purchase / Restore
 
     @objc private func unlockTapped() {
-        AppServices.subscription.activate(plan: selectedPlan)
-        dismiss(animated: true)
+        guard let product = selectedPlanView.product else {
+            presentLoadFailure()
+            return
+        }
+        unlock.setLoading(true)
+        Task { [weak self] in
+            guard let self else { return }
+            let result = await self.subscription.purchase(product)
+            await MainActor.run {
+                self.unlock.setLoading(false)
+                switch result {
+                case .success(let unlocked):
+                    if unlocked { self.handleUnlocked() }
+                case .failure(let error):
+                    self.presentError(error)
+                }
+            }
+        }
+    }
+
+    @objc private func restoreTapped() {
+        unlock.setLoading(true)
+        Task { [weak self] in
+            guard let self else { return }
+            let result = await self.subscription.restore()
+            await MainActor.run {
+                self.unlock.setLoading(false)
+                switch result {
+                case .success(let unlocked):
+                    unlocked ? self.handleUnlocked() : self.presentNothingToRestore()
+                case .failure(let error):
+                    self.presentError(error)
+                }
+            }
+        }
+    }
+
+    /// Unlock-without-relaunch: dismiss and let the opener run the gated action.
+    private func handleUnlocked() {
+        let completion = onUnlocked
+        dismiss(animated: true) { completion?() }
+    }
+
+    private func presentError(_ error: Error) {
+        let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        let alert = UIAlertController(title: "Покупка не завершена", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    private func presentNothingToRestore() {
+        let alert = UIAlertController(
+            title: "Покупки не найдены",
+            message: "Активные подписки для восстановления не найдены.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 
     @objc private func closeTapped() { dismiss(animated: true) }

@@ -103,4 +103,25 @@ extension ApphudProduct {
     var hasFreeTrial: Bool {
         skProduct?.introductoryPrice?.paymentMode == .freeTrial
     }
+
+    /// Localized per-week price derived from the product's total price and period,
+    /// e.g. a $69.99/year product → "$1.35". Returns `nil` if unavailable.
+    var weeklyPriceString: String? {
+        guard let sk = skProduct, let period = sk.subscriptionPeriod else { return nil }
+        let weeksPerUnit: Double
+        switch period.unit {
+        case .day: weeksPerUnit = 1.0 / 7.0
+        case .week: weeksPerUnit = 1.0
+        case .month: weeksPerUnit = 365.0 / 12.0 / 7.0
+        case .year: weeksPerUnit = 52.0
+        @unknown default: return nil
+        }
+        let totalWeeks = weeksPerUnit * Double(period.numberOfUnits)
+        guard totalWeeks > 0 else { return nil }
+        let weekly = sk.price.dividing(by: NSDecimalNumber(value: totalWeeks))
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = sk.priceLocale
+        return formatter.string(from: weekly)
+    }
 }
