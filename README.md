@@ -42,12 +42,10 @@ AIStudio/
 ## Экраны
 
 1. **Home** — герой-блок (лого, заголовок, поле «Ask anything»), бенто-карточки: «Turn Photo into Video» (→ AI Video), «Fix & Improve Writing» и «Understand Faster» (→ AI Chat). ⚙️ → Paywall.
-2. **AI Chat** — кастомный заголовок (аватар + «AI Chat» + дата), история переписки (user-бабл с градиентом, assistant-бабл с градиентным заголовком и форматированным текстом/буллетами), поле ввода. Отправка добавляет сообщение и через мок-задержку — ответ ассистента. Иконка ↻ открывает **AI Chat History** (секции Today/Yesterday + пустое состояние).
+2. **AI Chat** — кастомный заголовок (аватар + «AI Chat» + дата), переписка (user-бабл с градиентом и хвостом, assistant-бабл с градиентным заголовком и буллетами), поле ввода. Пустой/стартовый экран («Your AI assistant for anything») — тап по «Ask anything» на Home. Отправка добавляет сообщение и через мок-задержку — ответ ассистента. Иконка ↻ открывает **AI Chat History** (Today/Yesterday + пустое состояние).
 3. **AI Video — Gallery** — заголовок с аватаром, скролл-чипы категорий, грид 2×N видео-шаблонов (Title по центру). Иконка ↻ открывает **AI Video History** (+ пустое «No videos yet»).
 4. **AI Video — Create** («Clay Fool») — карусель-превью, загрузка изображения («+» → системный запрос доступа к фото), параметры Format / Quality и кнопка Create. Состояния:
-   - **Loading** — спиннер в кнопке/тайле + «Generating your video…»;
-   - **Success** — «Play video» + «Your video is ready» (мок через ~2 c);
-   - **Error / retry** — «Try again» + сообщение об ошибке.
+   По тапу Create открывается **Result**: экран генерации (пульсирующий orb + «Generating…», мок ~2 c) → готовый результат с кнопками **Share** / **Download**; на ошибке — «Try again». (Long-press по Create демонстрирует error.)
 5. **Paywall** — заголовок, список преимуществ, тарифы Year/Month (выбранный — с градиентным бордером и бейджем SAVE 80%), кнопка Unlock now, футер.
 
 ## Навигация
@@ -63,7 +61,7 @@ AIStudio/
 Запуск сразу в нужный экран/состояние (для снапшотов и ручной проверки; в Release вырезается):
 
 ```sh
-xcrun simctl launch <udid> com.labs.fviu -INITIAL_SCREEN chat            # home|chat|chatHistory|chatHistoryEmpty|videoGallery|videoCreate|videoHistory|videoHistoryEmpty|paywall
+xcrun simctl launch <udid> com.labs.fviu -INITIAL_SCREEN chat            # home|chat|chatEmpty|chatHistory|chatHistoryEmpty|videoGallery|videoCreate|videoResult|videoHistory|videoHistoryEmpty|paywall
 xcrun simctl launch <udid> com.labs.fviu -INITIAL_SCREEN videoCreate -DEBUG_VC_STATE loading   # loading|success|error
 ```
 

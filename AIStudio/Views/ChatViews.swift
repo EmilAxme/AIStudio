@@ -109,6 +109,48 @@ enum ChatText {
     }
 }
 
+/// Empty/start state for a new AI Chat: "Your AI assistant for anything".
+final class ChatEmptyStateView: UIView {
+    init() {
+        super.init(frame: .zero)
+        func word(_ text: String) -> UILabel {
+            let l = UILabel()
+            l.text = text
+            l.font = AppFont.semibold(18)
+            l.textColor = .white
+            return l
+        }
+        let your = word("Your ")
+        let accent = GradientLabel(text: "AI assistant", font: AppFont.semibold(18))
+        accent.translatesAutoresizingMaskIntoConstraints = false
+        accent.setContentHuggingPriority(.required, for: .horizontal)
+        let rest = word(" for anything")
+        let titleRow = UIStackView(arrangedSubviews: [your, accent, rest])
+        titleRow.axis = .horizontal
+        titleRow.alignment = .center
+
+        let subtitle = UILabel()
+        subtitle.text = "Ask questions, get answers, and explore ideas in seconds"
+        subtitle.font = AppFont.regular(14)
+        subtitle.textColor = AppColor.secondaryText
+        subtitle.textAlignment = .center
+        subtitle.numberOfLines = 0
+
+        let stack = UIStackView(arrangedSubviews: [titleRow, subtitle])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 10
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        stack.pinToEdges(of: self)
+        NSLayoutConstraint.activate([
+            accent.heightAnchor.constraint(equalToConstant: 22)
+        ])
+    }
+
+    required init?(coder: NSCoder) { nil }
+}
+
 final class ChatComposerView: UIView {
     let textField = UITextField()
     var onSend: ((String) -> Void)?

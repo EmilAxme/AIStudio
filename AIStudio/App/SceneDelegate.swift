@@ -34,6 +34,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         switch screen {
         case "chat":
             nav.pushViewController(ChatViewController(), animated: false)
+        case "chatEmpty":
+            nav.pushViewController(ChatViewController(startEmpty: true), animated: false)
         case "chatHistory":
             nav.pushViewController(HistoryViewController.chat(), animated: false)
         case "chatHistoryEmpty":
@@ -46,6 +48,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             nav.pushViewController(VideoGalleryViewController(), animated: false)
         case "videoCreate":
             nav.pushViewController(VideoCreateViewController(), animated: false)
+        case "videoResult":
+            nav.pushViewController(VideoResultViewController(request: VideoRequest(imageName: "AstroGirl", aspectRatio: "16:9", quality: "1080p")), animated: false)
         case "paywall":
             DispatchQueue.main.async {
                 let paywall = PaywallViewController()

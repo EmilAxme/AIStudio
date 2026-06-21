@@ -122,7 +122,7 @@ final class HomeViewController: UIViewController {
 
     private func setupActions() {
         settingsButton.addTarget(self, action: #selector(showPaywall), for: .touchUpInside)
-        let chatTap = UITapGestureRecognizer(target: self, action: #selector(showChat))
+        let chatTap = UITapGestureRecognizer(target: self, action: #selector(showChatEmpty))
         askControl.addGestureRecognizer(chatTap)
         writingCard.addTarget(self, action: #selector(showChat), for: .touchUpInside)
         summaryCard.addTarget(self, action: #selector(showChat), for: .touchUpInside)
@@ -131,6 +131,10 @@ final class HomeViewController: UIViewController {
 
     @objc private func showChat() {
         navigationController?.pushViewController(ChatViewController(), animated: true)
+    }
+
+    @objc private func showChatEmpty() {
+        navigationController?.pushViewController(ChatViewController(startEmpty: true), animated: true)
     }
 
     @objc private func showVideoGallery() {

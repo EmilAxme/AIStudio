@@ -5,17 +5,15 @@ final class ChatViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let messagesStack = UIStackView()
     private let composer = ChatComposerView()
-    private var messages: [ChatMessage] = [
-        ChatMessage(
-            sender: .user,
-            text: "Hi! Can you help me write a short welcome email for a new employee joining our team?"
-        ),
-        ChatMessage(
-            sender: .assistant,
-            text: "Hi Alexander, welcome to the development team! We're all really looking forward to having you start next week, and we're confident you'll settle in quickly.\nHere are a few tips to help you get through your first week:\n•  **Focus on getting up to speed** — don't hesitate to ask questions if anything is unclear. We're used to helping new team members find their feet.\n•  **Meet the team** — we're having a short welcome meeting on Monday at 11:00 AM. It'll be a great chance to connect with everyone.\n•  **Documentation** — all the key materials are available in our internal knowledge base. I'll send you the link separately.",
-            title: "Welcome to the team, Alexander!"
-        )
-    ]
+    private let emptyStateView = ChatEmptyStateView()
+    private var messages: [ChatMessage]
+
+    init(startEmpty: Bool = false) {
+        messages = startEmpty ? [] : ChatViewController.seedMessages
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { nil }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,7 +21,19 @@ final class ChatViewController: UIViewController {
         setupHeader()
         setupComposer()
         setupMessages()
+        setupEmptyState()
         renderMessages(animated: false)
+    }
+
+    private func setupEmptyState() {
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(emptyStateView)
+        NSLayoutConstraint.activate([
+            emptyStateView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            emptyStateView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor)
+        ])
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -133,6 +143,8 @@ final class ChatViewController: UIViewController {
     }
 
     private func renderMessages(animated: Bool) {
+        emptyStateView.isHidden = !messages.isEmpty
+        scrollView.isHidden = messages.isEmpty
         messagesStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         messages.forEach { message in
             let container = UIView()
@@ -186,4 +198,16 @@ final class ChatViewController: UIViewController {
     }
 
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
+
+    private static let seedMessages: [ChatMessage] = [
+        ChatMessage(
+            sender: .user,
+            text: "Hi! Can you help me write a short welcome email for a new employee joining our team?"
+        ),
+        ChatMessage(
+            sender: .assistant,
+            text: "Hi Alexander, welcome to the development team! We're all really looking forward to having you start next week, and we're confident you'll settle in quickly.\nHere are a few tips to help you get through your first week:\n•  **Focus on getting up to speed** — don't hesitate to ask questions if anything is unclear. We're used to helping new team members find their feet.\n•  **Meet the team** — we're having a short welcome meeting on Monday at 11:00 AM. It'll be a great chance to connect with everyone.\n•  **Documentation** — all the key materials are available in our internal knowledge base. I'll send you the link separately.",
+            title: "Welcome to the team, Alexander!"
+        )
+    ]
 }

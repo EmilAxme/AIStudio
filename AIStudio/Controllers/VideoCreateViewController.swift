@@ -43,7 +43,7 @@ final class VideoCreateViewController: UIViewController {
         titleLabel.textColor = .white
         titleLabel.font = AppFont.font(17, .semibold)
         titleLabel.textAlignment = .center
-        preview.image = UIImage(named: "AstroGirl")
+        preview.image = UIImage(named: "ClayFool")
         preview.contentMode = .scaleAspectFill
         preview.layer.cornerRadius = 16
         preview.clipsToBounds = true
@@ -120,7 +120,7 @@ final class VideoCreateViewController: UIViewController {
         switch state {
         case .idle:
             let isReady = selectedImageName != nil
-            preview.image = UIImage(named: selectedImageName ?? "AstroGirl")
+            preview.image = UIImage(named: selectedImageName ?? "ClayFool")
             createButton.isEnabled = isReady
             createButton.setTitle("Create", for: .normal)
             createButton.setLoading(false)
@@ -171,17 +171,10 @@ final class VideoCreateViewController: UIViewController {
 
     @objc private func createTapped() {
         guard let imageName = selectedImageName else { return }
-        if case .success = state { return }
-        state = .loading
         let request = VideoRequest(imageName: imageName, aspectRatio: "16:9", quality: "1080p")
-        AppServices.video.generate(request: request, shouldFail: shouldFailNextGeneration) { [weak self] result in
-            guard let self else { return }
-            self.shouldFailNextGeneration = false
-            switch result {
-            case .success: self.state = .success
-            case .failure(let error): self.state = .error(error.localizedDescription)
-            }
-        }
+        let resultVC = VideoResultViewController(request: request, shouldFail: shouldFailNextGeneration)
+        shouldFailNextGeneration = false
+        navigationController?.pushViewController(resultVC, animated: true)
     }
 
     @objc private func prepareError(_ gesture: UILongPressGestureRecognizer) {
