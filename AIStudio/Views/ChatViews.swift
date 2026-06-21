@@ -152,15 +152,31 @@ final class ChatEmptyStateView: UIView {
 }
 
 final class ChatComposerView: UIView {
+    /// Height of the visible input row above the home indicator (Figma: 88pt @ 844).
+    static let barHeight: CGFloat = 88
+
     let textField = UITextField()
     var onSend: ((String) -> Void)?
 
-    private let sendButton = UIButton(type: .system)
-    private let sendGradient = GradientView(
+    /// Trailing action: an outlined mic while empty that morphs into a gradient
+    /// paper-plane Send the moment there is text. The mic shrinks out, the gradient
+    /// circle springs in and the plane flies up into place; clearing the field reverses it.
+    private let actionButton = UIControl()
+    private let actionRing = UIView()
+    private let actionGradient = GradientView(
         colors: AppColor.inputGradient,
         startPoint: CGPoint(x: 0, y: 0.5),
         endPoint: CGPoint(x: 1, y: 0.5)
     )
+    private let micIcon = UIImageView(image: UIImage(named: "icMic"))
+    private let sendIcon = UIImageView(image: UIImage(named: "icSend"))
+    private let haptic = UIImpactFeedbackGenerator(style: .light)
+    private var isSendState = false
+
+    /// Resting transform for the inactive icon: nudged toward the lower-left and shrunk,
+    /// so the plane appears to "take off" toward the upper-right on activation.
+    private static let tuckedAway = CGAffineTransform(translationX: -4, y: 4).scaledBy(x: 0.5, y: 0.5)
+    private static let shrunk = CGAffineTransform(scaleX: 0.5, y: 0.5)
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -180,66 +196,139 @@ final class ChatComposerView: UIView {
         textField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
 
         let download = iconButton(imageName: "icImport")
-        download.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
 
-        sendGradient.isUserInteractionEnabled = false
-        sendGradient.layer.cornerRadius = 24
-        sendGradient.clipsToBounds = true
-        sendGradient.translatesAutoresizingMaskIntoConstraints = false
-        sendButton.tintColor = .white
-        sendButton.layer.cornerRadius = 24
-        sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
+        setupActionButton()
 
-        addSubviews(textField, download, sendGradient, sendButton)
+        addSubviews(textField, download, actionButton)
+        // Content sits centered within the top `barHeight` band; the view itself
+        // extends below to cover the home-indicator area.
         NSLayoutConstraint.activate([
             textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
-            textField.centerYAnchor.constraint(equalTo: centerYAnchor),
+            textField.centerYAnchor.constraint(equalTo: topAnchor, constant: Self.barHeight / 2),
             textField.trailingAnchor.constraint(equalTo: download.leadingAnchor, constant: -10),
-            download.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -12),
-            download.centerYAnchor.constraint(equalTo: centerYAnchor),
+            download.trailingAnchor.constraint(equalTo: actionButton.leadingAnchor, constant: -12),
+            download.centerYAnchor.constraint(equalTo: topAnchor, constant: Self.barHeight / 2),
             download.widthAnchor.constraint(equalToConstant: 48),
             download.heightAnchor.constraint(equalToConstant: 48),
-            sendButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
-            sendButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            sendButton.widthAnchor.constraint(equalToConstant: 48),
-            sendButton.heightAnchor.constraint(equalToConstant: 48),
-            sendGradient.trailingAnchor.constraint(equalTo: sendButton.trailingAnchor),
-            sendGradient.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor),
-            sendGradient.widthAnchor.constraint(equalToConstant: 48),
-            sendGradient.heightAnchor.constraint(equalToConstant: 48)
+            actionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
+            actionButton.centerYAnchor.constraint(equalTo: topAnchor, constant: Self.barHeight / 2),
+            actionButton.widthAnchor.constraint(equalToConstant: 48),
+            actionButton.heightAnchor.constraint(equalToConstant: 48)
         ])
-        updateSendButton()
+        haptic.prepare()
+        applySendState(false, animated: false)
     }
 
     required init?(coder: NSCoder) { nil }
+
+    private func setupActionButton() {
+        actionButton.translatesAutoresizingMaskIntoConstraints = false
+        actionButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
+
+        actionRing.isUserInteractionEnabled = false
+        actionRing.layer.cornerRadius = 24
+        actionRing.layer.borderWidth = 1
+        actionRing.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor
+
+        actionGradient.isUserInteractionEnabled = false
+        actionGradient.layer.cornerRadius = 24
+        actionGradient.clipsToBounds = true
+
+        for icon in [micIcon, sendIcon] {
+            icon.tintColor = .white
+            icon.contentMode = .scaleAspectFit
+            icon.isUserInteractionEnabled = false
+        }
+
+        for sub in [actionRing, actionGradient, micIcon, sendIcon] {
+            sub.translatesAutoresizingMaskIntoConstraints = false
+            actionButton.addSubview(sub)
+        }
+        NSLayoutConstraint.activate([
+            actionRing.leadingAnchor.constraint(equalTo: actionButton.leadingAnchor),
+            actionRing.trailingAnchor.constraint(equalTo: actionButton.trailingAnchor),
+            actionRing.topAnchor.constraint(equalTo: actionButton.topAnchor),
+            actionRing.bottomAnchor.constraint(equalTo: actionButton.bottomAnchor),
+            actionGradient.leadingAnchor.constraint(equalTo: actionButton.leadingAnchor),
+            actionGradient.trailingAnchor.constraint(equalTo: actionButton.trailingAnchor),
+            actionGradient.topAnchor.constraint(equalTo: actionButton.topAnchor),
+            actionGradient.bottomAnchor.constraint(equalTo: actionButton.bottomAnchor),
+            micIcon.centerXAnchor.constraint(equalTo: actionButton.centerXAnchor),
+            micIcon.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
+            micIcon.widthAnchor.constraint(equalToConstant: 24),
+            micIcon.heightAnchor.constraint(equalToConstant: 24),
+            sendIcon.centerXAnchor.constraint(equalTo: actionButton.centerXAnchor),
+            sendIcon.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
+            sendIcon.widthAnchor.constraint(equalToConstant: 24),
+            sendIcon.heightAnchor.constraint(equalToConstant: 24)
+        ])
+    }
 
     private var hasText: Bool {
         !(textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// Mic (outlined) when empty → gradient paper-plane Send when there is text.
-    private func updateSendButton() {
-        if hasText {
-            sendGradient.isHidden = false
-            sendButton.setImage(UIImage(named: "icSend"), for: .normal)
-            sendButton.layer.borderWidth = 0
+    /// Drives the morph between the outlined mic (empty) and the gradient Send (typing).
+    private func applySendState(_ active: Bool, animated: Bool) {
+        isSendState = active
+        let setVisuals = {
+            self.actionGradient.alpha = active ? 1 : 0
+            self.actionRing.alpha = active ? 0 : 1
+            self.micIcon.alpha = active ? 0 : 1
+            self.sendIcon.alpha = active ? 1 : 0
+        }
+
+        guard animated else {
+            setVisuals()
+            actionGradient.transform = active ? .identity : Self.shrunk
+            sendIcon.transform = active ? .identity : Self.tuckedAway
+            micIcon.transform = active ? Self.shrunk : .identity
+            return
+        }
+
+        if active {
+            haptic.impactOccurred()
+            actionGradient.transform = Self.shrunk
+            sendIcon.transform = Self.tuckedAway
+            UIView.animate(withDuration: 0.42, delay: 0, usingSpringWithDamping: 0.6,
+                           initialSpringVelocity: 0.9,
+                           options: [.allowUserInteraction, .beginFromCurrentState]) {
+                setVisuals()
+                self.actionGradient.transform = .identity
+                self.sendIcon.transform = .identity
+                self.micIcon.transform = Self.shrunk
+            }
         } else {
-            sendGradient.isHidden = true
-            sendButton.setImage(UIImage(named: "icMic"), for: .normal)
-            sendButton.layer.borderWidth = 1
-            sendButton.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor
+            UIView.animate(withDuration: 0.26, delay: 0,
+                           options: [.allowUserInteraction, .beginFromCurrentState, .curveEaseOut]) {
+                setVisuals()
+                self.actionGradient.transform = Self.shrunk
+                self.sendIcon.transform = Self.tuckedAway
+                self.micIcon.transform = .identity
+            }
         }
     }
 
-    @objc private func textChanged() { updateSendButton() }
+    @objc private func textChanged() {
+        if hasText != isSendState { applySendState(hasText, animated: true) }
+    }
 
     @objc private func sendTapped() {
         let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty else { return }   // empty == mic; no action yet
         textField.text = nil
-        updateSendButton()
+        applySendState(false, animated: true)
         onSend?(text)
     }
+
+    #if DEBUG
+    /// Snapshot/QA helper: drops in demo text and runs the empty→send morph so the
+    /// transition can be captured on launch. Compiled out of Release builds.
+    func runSendTransitionDemo(_ text: String = "Write a poem about the sea") {
+        textField.text = text
+        applySendState(true, animated: true)
+    }
+    #endif
 
     private func iconButton(imageName: String) -> UIButton {
         let button = UIButton(type: .system)

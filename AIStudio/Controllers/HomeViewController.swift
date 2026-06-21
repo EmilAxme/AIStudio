@@ -66,7 +66,9 @@ final class HomeViewController: UIViewController {
         askIconBackground.backgroundColor = UIColor.white.withAlphaComponent(0.06)
         askIconBackground.layer.cornerRadius = 9
         askIconBackground.translatesAutoresizingMaskIntoConstraints = false
-        let askIcon = GradientIconView(imageName: "icGenerate")
+        let askIcon = UIImageView(image: UIImage(named: "icGenerate"))
+        askIcon.tintColor = .white
+        askIcon.contentMode = .scaleAspectFit
         askIcon.translatesAutoresizingMaskIntoConstraints = false
         askIconBackground.addSubview(askIcon)
         askLabel.text = "Ask anything..."

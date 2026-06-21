@@ -46,8 +46,59 @@ final class VideoResultViewController: UIViewController {
         resultImageView.image = UIImage(named: request.imageName)
         resultImageView.contentMode = .scaleAspectFill
         resultImageView.layer.cornerRadius = 24
+        resultImageView.layer.cornerCurve = .continuous
         resultImageView.clipsToBounds = true
+        resultImageView.isUserInteractionEnabled = true
         resultImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Centered play glyph — signals this is a video result.
+        let play = UIImageView(image: UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .medium)))
+        play.tintColor = UIColor.white.withAlphaComponent(0.95)
+        play.contentMode = .center
+        play.layer.shadowColor = UIColor.black.cgColor
+        play.layer.shadowOpacity = 0.35
+        play.layer.shadowRadius = 12
+        play.layer.shadowOffset = .zero
+        play.translatesAutoresizingMaskIntoConstraints = false
+        resultImageView.addSubview(play)
+
+        // "Replace" pill (top-right) — restarts the generation.
+        let replace = UIControl()
+        replace.backgroundColor = UIColor(white: 0.32, alpha: 0.55)
+        replace.layer.cornerRadius = 16
+        replace.translatesAutoresizingMaskIntoConstraints = false
+        let replaceIcon = UIImageView(image: UIImage(named: "icUnion"))
+        replaceIcon.tintColor = .white
+        replaceIcon.contentMode = .scaleAspectFit
+        let replaceLabel = UILabel()
+        replaceLabel.text = "Replace"
+        replaceLabel.textColor = .white
+        replaceLabel.font = AppFont.medium(14)
+        let replaceStack = UIStackView(arrangedSubviews: [replaceIcon, replaceLabel])
+        replaceStack.axis = .horizontal
+        replaceStack.spacing = 5
+        replaceStack.alignment = .center
+        replaceStack.isUserInteractionEnabled = false
+        replaceStack.translatesAutoresizingMaskIntoConstraints = false
+        replace.addSubview(replaceStack)
+        replace.addTarget(self, action: #selector(replaceTapped), for: .touchUpInside)
+        resultImageView.addSubview(replace)
+
+        NSLayoutConstraint.activate([
+            play.centerXAnchor.constraint(equalTo: resultImageView.centerXAnchor),
+            play.centerYAnchor.constraint(equalTo: resultImageView.centerYAnchor),
+            play.widthAnchor.constraint(equalToConstant: 64),
+            play.heightAnchor.constraint(equalToConstant: 64),
+
+            replace.topAnchor.constraint(equalTo: resultImageView.topAnchor, constant: 12),
+            replace.trailingAnchor.constraint(equalTo: resultImageView.trailingAnchor, constant: -12),
+            replace.heightAnchor.constraint(equalToConstant: 32),
+            replaceIcon.widthAnchor.constraint(equalToConstant: 15),
+            replaceIcon.heightAnchor.constraint(equalToConstant: 15),
+            replaceStack.leadingAnchor.constraint(equalTo: replace.leadingAnchor, constant: 12),
+            replaceStack.trailingAnchor.constraint(equalTo: replace.trailingAnchor, constant: -12),
+            replaceStack.centerYAnchor.constraint(equalTo: replace.centerYAnchor)
+        ])
 
         shareButton.setTitle("Share", for: .normal)
         shareButton.titleLabel?.font = AppFont.semibold(17)
@@ -125,6 +176,11 @@ final class VideoResultViewController: UIViewController {
 
         shareButton.addAction(UIAction { [weak self] _ in self?.presentShareSheet() }, for: .touchUpInside)
         downloadButton.addAction(UIAction { [weak self] _ in self?.presentSavedAlert() }, for: .touchUpInside)
+    }
+
+    @objc private func replaceTapped() {
+        shouldFail = false
+        generate()
     }
 
     private func generate() {

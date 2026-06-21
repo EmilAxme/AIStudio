@@ -38,6 +38,17 @@ final class ChatViewController: UIViewController {
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
+    #if DEBUG
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if UserDefaults.standard.bool(forKey: "COMPOSER_DEMO") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+                self?.composer.runSendTransitionDemo()
+            }
+        }
+    }
+    #endif
+
     private func setupHeader() {
         header.backgroundColor = UIColor(hex: 0x130E16)
         let back = UIButton(type: .system)
@@ -138,7 +149,9 @@ final class ChatViewController: UIViewController {
             composer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             composer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             composer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            composer.heightAnchor.constraint(equalToConstant: 140)
+            // Figma: input bar is 88pt tall above the home indicator (which the bar
+            // extends under). Pin the top 88pt up from the safe-area bottom.
+            composer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -ChatComposerView.barHeight)
         ])
     }
 

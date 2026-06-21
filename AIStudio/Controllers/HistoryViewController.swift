@@ -5,13 +5,15 @@ import UIKit
 final class HistoryViewController: UIViewController {
     private let navTitle: String
     private let sections: [HistorySection]
+    private let gridImageNames: [String]?
     private let emptyIcon: String
     private let emptyTitle: String
     private let emptySubtitle: String
 
-    init(title: String, sections: [HistorySection], emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
+    init(title: String, sections: [HistorySection], gridImageNames: [String]? = nil, emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
         self.navTitle = title
         self.sections = sections
+        self.gridImageNames = gridImageNames
         self.emptyIcon = emptyIcon
         self.emptyTitle = emptyTitle
         self.emptySubtitle = emptySubtitle
@@ -37,7 +39,61 @@ final class HistoryViewController: UIViewController {
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
-        sections.isEmpty ? setupEmptyState() : setupList(below: header)
+        if let grid = gridImageNames, !grid.isEmpty {
+            setupGrid(below: header, images: grid)
+        } else if sections.isEmpty {
+            setupEmptyState()
+        } else {
+            setupList(below: header)
+        }
+    }
+
+    /// Two-column masonry of generated thumbnails (AI Video History).
+    private func setupGrid(below header: UIView, images: [String]) {
+        let scrollView = UIScrollView()
+        scrollView.alwaysBounceVertical = true
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+
+        let leftColumn = UIStackView()
+        let rightColumn = UIStackView()
+        for column in [leftColumn, rightColumn] {
+            column.axis = .vertical
+            column.spacing = 12
+            column.distribution = .fill
+        }
+
+        // Staggered heights give the masonry feel.
+        let ratios: [CGFloat] = [1.32, 1.0, 1.46, 1.12]
+        for (index, name) in images.enumerated() {
+            let imageView = UIImageView(image: UIImage(named: name))
+            imageView.contentMode = .scaleAspectFill
+            imageView.clipsToBounds = true
+            imageView.layer.cornerRadius = 18
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: ratios[index % ratios.count]).isActive = true
+            (index % 2 == 0 ? leftColumn : rightColumn).addArrangedSubview(imageView)
+        }
+
+        let columns = UIStackView(arrangedSubviews: [leftColumn, rightColumn])
+        columns.axis = .horizontal
+        columns.spacing = 12
+        columns.distribution = .fillEqually
+        columns.alignment = .top
+        columns.translatesAutoresizingMaskIntoConstraints = false
+
+        scrollView.addSubview(columns)
+        view.addSubview(scrollView)
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: header.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            columns.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 20),
+            columns.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.horizontalInset),
+            columns.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.horizontalInset),
+            columns.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -24)
+        ])
     }
 
     private func setupList(below header: UIView) {
@@ -134,10 +190,16 @@ final class HistoryViewController: UIViewController {
         )
     }
 
+    private static let mockVideoThumbnails = [
+        "GalleryGirl", "AstroGirl", "ClayFool", "AstroGirl",
+        "ClayFool", "GalleryGirl", "AstroGirl", "GalleryGirl"
+    ]
+
     static func video(empty: Bool = false) -> HistoryViewController {
         HistoryViewController(
             title: "AI Video History",
-            sections: empty ? [] : mockSections,
+            sections: [],
+            gridImageNames: empty ? nil : mockVideoThumbnails,
             emptyIcon: "play.rectangle",
             emptyTitle: "No videos yet",
             emptySubtitle: "Your generated videos will appear here"

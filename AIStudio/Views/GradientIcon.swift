@@ -87,25 +87,23 @@ final class GradientLabel: UIView {
     override var intrinsicContentSize: CGSize { label.intrinsicContentSize }
 }
 
-/// Multi-colour sparkle cluster used as the Home hero logo (Figma "Union" glyph).
+/// Multi-colour sparkle cluster used as the Home hero logo (Figma full-colour glyph).
 final class SparkleLogoView: UIView {
     init() {
         super.init(frame: .zero)
-        let sparkle = GradientIconView(
-            imageName: "icGenerate",
-            startPoint: CGPoint(x: 0.1, y: 0.2), endPoint: CGPoint(x: 0.9, y: 0.9)
-        )
+        let sparkle = UIImageView(image: UIImage(named: "icSparkleCluster"))
+        sparkle.contentMode = .scaleAspectFit
         sparkle.translatesAutoresizingMaskIntoConstraints = false
         addSubview(sparkle)
         NSLayoutConstraint.activate([
             sparkle.centerXAnchor.constraint(equalTo: centerXAnchor),
             sparkle.centerYAnchor.constraint(equalTo: centerYAnchor),
-            sparkle.widthAnchor.constraint(equalToConstant: 54),
-            sparkle.heightAnchor.constraint(equalToConstant: 54)
+            sparkle.widthAnchor.constraint(equalToConstant: 56),
+            sparkle.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
 
     required init?(coder: NSCoder) { nil }
 
-    override var intrinsicContentSize: CGSize { CGSize(width: 58, height: 52) }
+    override var intrinsicContentSize: CGSize { CGSize(width: 58, height: 56) }
 }
