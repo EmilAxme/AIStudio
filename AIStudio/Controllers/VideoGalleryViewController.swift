@@ -71,7 +71,7 @@ final class VideoGalleryViewController: UIViewController {
         refresh.setImage(UIImage(systemName: "arrow.triangle.2.circlepath"), for: .normal)
         refresh.tintColor = .white
         refresh.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .regular), forImageIn: .normal)
-        refresh.addTarget(self, action: #selector(showPhotosPermission), for: .touchUpInside)
+        refresh.addTarget(self, action: #selector(showVideoHistory), for: .touchUpInside)
 
         view.addSubviews(back, titleStack, refresh)
         avatarIcon.translatesAutoresizingMaskIntoConstraints = false
@@ -164,15 +164,8 @@ final class VideoGalleryViewController: UIViewController {
         categories.forEach { chipStack.addArrangedSubview(makeChip(title: $0)) }
     }
 
-    @objc private func showPhotosPermission() {
-        let alert = UIAlertController(
-            title: "Allow access to photos?",
-            message: "To upload an image, the app needs access to your photo gallery.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Allow", style: .default))
-        present(alert, animated: true)
+    @objc private func showVideoHistory() {
+        navigationController?.pushViewController(HistoryViewController.video(), animated: true)
     }
 
     @objc private func goBack() { navigationController?.popViewController(animated: true) }

@@ -150,6 +150,17 @@ final class VideoCreateViewController: UIViewController {
     }
 
     @objc private func selectImage() {
+        let alert = UIAlertController(
+            title: "Allow access to photos?",
+            message: "To upload an image, the app needs access to your photo gallery.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Allow", style: .default) { [weak self] _ in self?.pickMockImage() })
+        present(alert, animated: true)
+    }
+
+    private func pickMockImage() {
         uploadTile.setLoading(true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { [weak self] in
             self?.selectedImageName = "ClayFool"

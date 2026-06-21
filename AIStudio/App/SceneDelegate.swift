@@ -34,6 +34,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         switch screen {
         case "chat":
             nav.pushViewController(ChatViewController(), animated: false)
+        case "chatHistory":
+            nav.pushViewController(HistoryViewController.chat(), animated: false)
+        case "chatHistoryEmpty":
+            nav.pushViewController(HistoryViewController.chat(empty: true), animated: false)
+        case "videoHistory":
+            nav.pushViewController(HistoryViewController.video(), animated: false)
+        case "videoHistoryEmpty":
+            nav.pushViewController(HistoryViewController.video(empty: true), animated: false)
         case "videoGallery":
             nav.pushViewController(VideoGalleryViewController(), animated: false)
         case "videoCreate":

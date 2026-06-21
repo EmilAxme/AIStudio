@@ -65,6 +65,7 @@ final class ChatViewController: UIViewController {
         magic.setImage(UIImage(systemName: "arrow.triangle.2.circlepath"), for: .normal)
         magic.tintColor = .white
         magic.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .regular), forImageIn: .normal)
+        magic.addTarget(self, action: #selector(showHistory), for: .touchUpInside)
 
         view.addSubviews(header)
         header.addSubviews(back, iconGradient, textStack, magic)
@@ -178,6 +179,10 @@ final class ChatViewController: UIViewController {
     private func scrollToBottom() {
         let offset = max(-scrollView.adjustedContentInset.top, scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom)
         scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
+    }
+
+    @objc private func showHistory() {
+        navigationController?.pushViewController(HistoryViewController.chat(), animated: true)
     }
 
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
