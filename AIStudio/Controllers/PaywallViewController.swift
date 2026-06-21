@@ -175,21 +175,57 @@ final class PaywallViewController: UIViewController {
         }
     }
 
-    /// Assigns products to the yearly/monthly rows by their subscription period,
-    /// falling back to source order when the period is unknown.
+    /// Binds products to the two rows. Prefers a natural year+month split; when the
+    /// paywall has a single product (or two sharing a period) it assigns distinct
+    /// products by source order and hides the unused row — never binding the same
+    /// product to both rows (which would show duplicate prices / a mislabeled plan).
     private func bind(products: [ApphudProduct]) {
-        let yearlyProduct = products.first { $0.skProduct?.subscriptionPeriod?.unit == .year }
-        let monthlyProduct = products.first { $0.skProduct?.subscriptionPeriod?.unit == .month }
+        let yearlyByPeriod = products.first { $0.skProduct?.subscriptionPeriod?.unit == .year }
+        let monthlyByPeriod = products.first { $0.skProduct?.subscriptionPeriod?.unit == .month }
 
-        let resolvedYearly = yearlyProduct ?? products.first
-        let resolvedMonthly = monthlyProduct ?? products.dropFirst().first ?? products.first
+        let resolvedYearly: ApphudProduct?
+        let resolvedMonthly: ApphudProduct?
+        if let yearlyByPeriod, let monthlyByPeriod, yearlyByPeriod !== monthlyByPeriod {
+            resolvedYearly = yearlyByPeriod
+            resolvedMonthly = monthlyByPeriod
+        } else {
+            resolvedYearly = products.first
+            resolvedMonthly = products.count > 1 ? products[1] : nil
+        }
 
-        if let resolvedYearly { yearly.configure(product: resolvedYearly, planName: "Year") }
-        if let resolvedMonthly { monthly.configure(product: resolvedMonthly, planName: "Month") }
+        configureRow(yearly, with: resolvedYearly, fallbackName: "Year")
+        configureRow(monthly, with: resolvedMonthly, fallbackName: "Month")
 
-        // Keep the previously selected row if it now has a product; else default to yearly.
-        if selectedPlanView.product == nil { selectedPlanView = yearly }
+        // The "SAVE" badge only makes sense when a longer plan sits beside a shorter one.
+        let showBadge = resolvedYearly?.skProduct?.subscriptionPeriod?.unit == .year && resolvedMonthly != nil
+        yearly.setSaveBadgeHidden(!showBadge)
+
+        // Default the selection to a visible row that actually has a product.
+        if selectedPlanView.product == nil || selectedPlanView.isHidden {
+            selectedPlanView = resolvedYearly != nil ? yearly : monthly
+        }
         updateSelection()
+    }
+
+    private func configureRow(_ row: PlanOptionView, with product: ApphudProduct?, fallbackName: String) {
+        if let product {
+            row.isHidden = false
+            row.configure(product: product, planName: planName(for: product, fallback: fallbackName))
+        } else {
+            row.isHidden = true
+            row.product = nil
+        }
+    }
+
+    /// Names a plan from its real subscription period, falling back to the row's slot.
+    private func planName(for product: ApphudProduct, fallback: String) -> String {
+        switch product.skProduct?.subscriptionPeriod?.unit {
+        case .year: return "Year"
+        case .month: return "Month"
+        case .week: return "Week"
+        case .day: return "Day"
+        default: return fallback
+        }
     }
 
     private func presentLoadFailure() {

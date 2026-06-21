@@ -84,6 +84,12 @@ final class PlanOptionView: UIControl {
         detailLabel.text = product.displayPriceString ?? " "
     }
 
+    /// Toggles the "SAVE …" badge (e.g. hide it when there's no second plan to
+    /// compare against).
+    func setSaveBadgeHidden(_ hidden: Bool) {
+        badge.isHidden = hidden
+    }
+
     private func updateAppearance() {
         borderGradient.update(colors: isSelected
             ? AppColor.inputGradient
