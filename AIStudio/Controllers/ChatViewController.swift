@@ -48,10 +48,9 @@ final class ChatViewController: UIViewController {
         let iconGradient = GradientView(colors: AppColor.inputGradient, startPoint: CGPoint(x: 0, y: 0.2), endPoint: CGPoint(x: 1, y: 0.9))
         iconGradient.layer.cornerRadius = 15
         iconGradient.clipsToBounds = true
-        let icon = UIImageView(image: UIImage(systemName: "sparkles"))
+        let icon = UIImageView(image: UIImage(named: "icGenerate"))
         icon.tintColor = .white
         icon.contentMode = .scaleAspectFit
-        icon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconGradient.addSubview(icon)
         NSLayoutConstraint.activate([
@@ -74,7 +73,7 @@ final class ChatViewController: UIViewController {
         textStack.spacing = 1
 
         let magic = UIButton(type: .system)
-        magic.setImage(UIImage(named: "icRefresh"), for: .normal)
+        magic.setImage(UIImage(named: "icUnion"), for: .normal)
         magic.tintColor = .white
         magic.addTarget(self, action: #selector(showHistory), for: .touchUpInside)
 

@@ -91,20 +91,17 @@ final class GradientLabel: UIView {
 final class SparkleLogoView: UIView {
     init() {
         super.init(frame: .zero)
-        let big = GradientIconView(
-            symbol: "sparkles", pointSize: 44, weight: .medium,
+        let sparkle = GradientIconView(
+            imageName: "icGenerate",
             startPoint: CGPoint(x: 0.1, y: 0.2), endPoint: CGPoint(x: 0.9, y: 0.9)
         )
-        let accent = GradientIconView(
-            symbol: "sparkle", pointSize: 16, weight: .semibold,
-            colors: [AppColor.pink, UIColor(hex: 0xF2A6C6)]
-        )
-        addSubviews(big, accent)
+        sparkle.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sparkle)
         NSLayoutConstraint.activate([
-            big.centerXAnchor.constraint(equalTo: centerXAnchor),
-            big.centerYAnchor.constraint(equalTo: centerYAnchor),
-            accent.trailingAnchor.constraint(equalTo: big.trailingAnchor, constant: 6),
-            accent.topAnchor.constraint(equalTo: big.topAnchor, constant: -2)
+            sparkle.centerXAnchor.constraint(equalTo: centerXAnchor),
+            sparkle.centerYAnchor.constraint(equalTo: centerYAnchor),
+            sparkle.widthAnchor.constraint(equalToConstant: 54),
+            sparkle.heightAnchor.constraint(equalToConstant: 54)
         ])
     }
 

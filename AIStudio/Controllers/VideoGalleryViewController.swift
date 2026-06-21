@@ -66,7 +66,7 @@ final class VideoGalleryViewController: UIViewController {
         titleStack.alignment = .center
 
         let refresh = UIButton(type: .system)
-        refresh.setImage(UIImage(named: "icRefresh"), for: .normal)
+        refresh.setImage(UIImage(named: "icUnion"), for: .normal)
         refresh.tintColor = .white
         refresh.addTarget(self, action: #selector(showVideoHistory), for: .touchUpInside)
 

@@ -43,7 +43,7 @@ final class PaywallViewController: UIViewController {
         benefits.axis = .vertical
         benefits.spacing = 14
         let rows: [(GradientIconView, String)] = [
-            (GradientIconView(symbol: "sparkles", pointSize: 17, weight: .semibold), "Get results in seconds"),
+            (GradientIconView(imageName: "icGenerate"), "Get results in seconds"),
             (GradientIconView(imageName: "icMagicPencil"), "Turn any text into better writing"),
             (GradientIconView(imageName: "icPrompt"), "Simplify complex information"),
             (GradientIconView(imageName: "icImageToImage"), "Create content with AI templates")

@@ -156,6 +156,11 @@ final class ChatComposerView: UIView {
     var onSend: ((String) -> Void)?
 
     private let sendButton = UIButton(type: .system)
+    private let sendGradient = GradientView(
+        colors: AppColor.inputGradient,
+        startPoint: CGPoint(x: 0, y: 0.5),
+        endPoint: CGPoint(x: 1, y: 0.5)
+    )
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -164,7 +169,7 @@ final class ChatComposerView: UIView {
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
 
         textField.placeholder = "How can I help you?"
-        textField.font = .App.body(17)
+        textField.font = AppFont.regular(16)
         textField.textColor = .white
         textField.attributedPlaceholder = NSAttributedString(
             string: "How can I help you?",
@@ -172,17 +177,20 @@ final class ChatComposerView: UIView {
         )
         textField.returnKeyType = .send
         textField.delegate = self
+        textField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
 
         let download = iconButton(imageName: "icImport")
-        sendButton.setImage(UIImage(named: "icMic"), for: .normal)
-        sendButton.tintColor = .white
-        sendButton.layer.borderWidth = 1
-        sendButton.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor
-        sendButton.layer.cornerRadius = 24
-        sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
         download.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
 
-        addSubviews(textField, download, sendButton)
+        sendGradient.isUserInteractionEnabled = false
+        sendGradient.layer.cornerRadius = 24
+        sendGradient.clipsToBounds = true
+        sendGradient.translatesAutoresizingMaskIntoConstraints = false
+        sendButton.tintColor = .white
+        sendButton.layer.cornerRadius = 24
+        sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
+
+        addSubviews(textField, download, sendGradient, sendButton)
         NSLayoutConstraint.activate([
             textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
             textField.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -194,16 +202,42 @@ final class ChatComposerView: UIView {
             sendButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
             sendButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             sendButton.widthAnchor.constraint(equalToConstant: 48),
-            sendButton.heightAnchor.constraint(equalToConstant: 48)
+            sendButton.heightAnchor.constraint(equalToConstant: 48),
+            sendGradient.trailingAnchor.constraint(equalTo: sendButton.trailingAnchor),
+            sendGradient.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor),
+            sendGradient.widthAnchor.constraint(equalToConstant: 48),
+            sendGradient.heightAnchor.constraint(equalToConstant: 48)
         ])
+        updateSendButton()
     }
 
     required init?(coder: NSCoder) { nil }
+
+    private var hasText: Bool {
+        !(textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Mic (outlined) when empty → gradient paper-plane Send when there is text.
+    private func updateSendButton() {
+        if hasText {
+            sendGradient.isHidden = false
+            sendButton.setImage(UIImage(named: "icSend"), for: .normal)
+            sendButton.layer.borderWidth = 0
+        } else {
+            sendGradient.isHidden = true
+            sendButton.setImage(UIImage(named: "icMic"), for: .normal)
+            sendButton.layer.borderWidth = 1
+            sendButton.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor
+        }
+    }
+
+    @objc private func textChanged() { updateSendButton() }
 
     @objc private func sendTapped() {
         let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !text.isEmpty else { return }
         textField.text = nil
+        updateSendButton()
         onSend?(text)
     }
 
