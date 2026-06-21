@@ -14,18 +14,18 @@ final class HomeViewController: UIViewController {
     private let featuredCard = HomeFeatureCard(
         title: "Turn Photo\ninto Video",
         subtitle: "Instant  •  Templates",
-        symbol: "photo.on.rectangle.angled",
+        symbol: "icImageToImage",
         isFeatured: true
     )
     private let writingCard = HomeFeatureCard(
         title: "Fix & Improve\nWriting",
         subtitle: "Rewrite  •  Fix grammar",
-        symbol: "pencil.and.scribble"
+        symbol: "icMagicPencil"
     )
     private let summaryCard = HomeFeatureCard(
         title: "Understand\nFaster",
         subtitle: "Summarize  •  Key points",
-        symbol: "list.bullet.rectangle"
+        symbol: "icMortarboard"
     )
 
     override func viewDidLoad() {
@@ -47,7 +47,7 @@ final class HomeViewController: UIViewController {
             topGlow.heightAnchor.constraint(equalToConstant: 320)
         ])
 
-        settingsButton.setImage(UIImage(systemName: "gearshape"), for: .normal)
+        settingsButton.setImage(UIImage(named: "icSetting"), for: .normal)
         settingsButton.tintColor = UIColor.white.withAlphaComponent(0.55)
         settingsButton.backgroundColor = UIColor.white.withAlphaComponent(0.06)
         settingsButton.layer.cornerRadius = 20
@@ -105,6 +105,8 @@ final class HomeViewController: UIViewController {
             askIconBackground.heightAnchor.constraint(equalToConstant: 32),
             askIcon.centerXAnchor.constraint(equalTo: askIconBackground.centerXAnchor),
             askIcon.centerYAnchor.constraint(equalTo: askIconBackground.centerYAnchor),
+            askIcon.widthAnchor.constraint(equalToConstant: 16),
+            askIcon.heightAnchor.constraint(equalToConstant: 16),
             askLabel.leadingAnchor.constraint(equalTo: askIconBackground.trailingAnchor, constant: 12),
             askLabel.centerYAnchor.constraint(equalTo: askControl.centerYAnchor),
 

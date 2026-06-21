@@ -9,9 +9,8 @@ final class ScreenHeaderView: UIView {
         super.init(frame: .zero)
 
         let back = UIButton(type: .system)
-        back.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        back.setImage(UIImage(named: "icArrow"), for: .normal)
         back.tintColor = .white
-        back.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold), forImageIn: .normal)
         back.addAction(UIAction { [weak self] _ in self?.onBack() }, for: .touchUpInside)
         back.translatesAutoresizingMaskIntoConstraints = false
 

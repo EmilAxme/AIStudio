@@ -173,8 +173,8 @@ final class ChatComposerView: UIView {
         textField.returnKeyType = .send
         textField.delegate = self
 
-        let download = iconButton(symbol: "arrow.down.to.line.compact")
-        sendButton.setImage(UIImage(systemName: "mic"), for: .normal)
+        let download = iconButton(imageName: "icImport")
+        sendButton.setImage(UIImage(named: "icMic"), for: .normal)
         sendButton.tintColor = .white
         sendButton.layer.borderWidth = 1
         sendButton.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor
@@ -207,9 +207,9 @@ final class ChatComposerView: UIView {
         onSend?(text)
     }
 
-    private func iconButton(symbol: String) -> UIButton {
+    private func iconButton(imageName: String) -> UIButton {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: symbol), for: .normal)
+        button.setImage(UIImage(named: imageName), for: .normal)
         button.tintColor = .white
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor

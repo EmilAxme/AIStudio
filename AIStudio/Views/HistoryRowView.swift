@@ -7,7 +7,7 @@ final class HistoryRowView: UIControl {
         backgroundColor = UIColor(hex: 0x1F191F, alpha: 0.4)
         layer.cornerRadius = 24
 
-        let icon = GradientIconView(symbol: "sparkles", pointSize: 22, weight: .medium)
+        let icon = GradientIconView(imageName: "icGenerate")
         icon.translatesAutoresizingMaskIntoConstraints = false
 
         let titleLabel = UILabel()

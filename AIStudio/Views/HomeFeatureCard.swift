@@ -37,14 +37,14 @@ final class HomeFeatureCard: UIControl {
         iconBackground.backgroundColor = UIColor.white.withAlphaComponent(isFeatured ? 0.15 : 0.07)
         iconBackground.layer.cornerRadius = iconSize / 2
         let glyph: UIView
+        let glyphSize: CGFloat = isFeatured ? 24 : 22
         if isFeatured {
-            iconView.image = UIImage(systemName: symbol)
+            iconView.image = UIImage(named: symbol)
             iconView.tintColor = .white
             iconView.contentMode = .scaleAspectFit
-            iconView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 21, weight: .regular)
             glyph = iconView
         } else {
-            glyph = GradientIconView(symbol: symbol, pointSize: 18, weight: .semibold)
+            glyph = GradientIconView(imageName: symbol)
         }
         glyph.translatesAutoresizingMaskIntoConstraints = false
 
@@ -73,6 +73,8 @@ final class HomeFeatureCard: UIControl {
             iconBackground.heightAnchor.constraint(equalToConstant: iconSize),
             glyph.centerXAnchor.constraint(equalTo: iconBackground.centerXAnchor),
             glyph.centerYAnchor.constraint(equalTo: iconBackground.centerYAnchor),
+            glyph.widthAnchor.constraint(equalToConstant: glyphSize),
+            glyph.heightAnchor.constraint(equalToConstant: glyphSize),
             textStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
             textStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
         ])

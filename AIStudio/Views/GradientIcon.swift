@@ -7,7 +7,36 @@ final class GradientIconView: UIView {
     private let maskLayer = CALayer()
     private let iconImage: UIImage
 
+    /// Designated init — fill the given (template/alpha) image with a gradient.
     init(
+        image: UIImage,
+        colors: [UIColor] = AppColor.inputGradient,
+        startPoint: CGPoint = CGPoint(x: 0, y: 0),
+        endPoint: CGPoint = CGPoint(x: 1, y: 1)
+    ) {
+        iconImage = image
+        super.init(frame: .zero)
+        gradientLayer.colors = colors.map(\.cgColor)
+        gradientLayer.startPoint = startPoint
+        gradientLayer.endPoint = endPoint
+        maskLayer.contents = iconImage.cgImage
+        maskLayer.contentsGravity = .resizeAspect
+        layer.mask = maskLayer
+    }
+
+    /// Convenience — fill an asset image (e.g. the exported Figma icons).
+    convenience init(
+        imageName: String,
+        colors: [UIColor] = AppColor.inputGradient,
+        startPoint: CGPoint = CGPoint(x: 0, y: 0),
+        endPoint: CGPoint = CGPoint(x: 1, y: 1)
+    ) {
+        let img = UIImage(named: imageName) ?? UIImage()
+        self.init(image: img, colors: colors, startPoint: startPoint, endPoint: endPoint)
+    }
+
+    /// Convenience — fill an SF Symbol with a gradient (fallback when no asset).
+    convenience init(
         symbol: String,
         pointSize: CGFloat,
         weight: UIImage.SymbolWeight = .medium,
@@ -16,15 +45,9 @@ final class GradientIconView: UIView {
         endPoint: CGPoint = CGPoint(x: 1, y: 1)
     ) {
         let config = UIImage.SymbolConfiguration(pointSize: pointSize, weight: weight)
-        iconImage = (UIImage(systemName: symbol, withConfiguration: config) ?? UIImage())
+        let img = (UIImage(systemName: symbol, withConfiguration: config) ?? UIImage())
             .withTintColor(.white, renderingMode: .alwaysOriginal)
-        super.init(frame: .zero)
-        gradientLayer.colors = colors.map(\.cgColor)
-        gradientLayer.startPoint = startPoint
-        gradientLayer.endPoint = endPoint
-        maskLayer.contents = iconImage.cgImage
-        maskLayer.contentsGravity = .resizeAspect
-        layer.mask = maskLayer
+        self.init(image: img, colors: colors, startPoint: startPoint, endPoint: endPoint)
     }
 
     required init?(coder: NSCoder) { nil }
@@ -64,21 +87,16 @@ final class GradientLabel: UIView {
     override var intrinsicContentSize: CGSize { label.intrinsicContentSize }
 }
 
-/// Multi-colour sparkle cluster used as the Home hero logo.
+/// Multi-colour sparkle cluster used as the Home hero logo (Figma "Union" glyph).
 final class SparkleLogoView: UIView {
     init() {
         super.init(frame: .zero)
         let big = GradientIconView(
-            symbol: "sparkles",
-            pointSize: 44,
-            weight: .medium,
-            startPoint: CGPoint(x: 0.1, y: 0.2),
-            endPoint: CGPoint(x: 0.9, y: 0.9)
+            symbol: "sparkles", pointSize: 44, weight: .medium,
+            startPoint: CGPoint(x: 0.1, y: 0.2), endPoint: CGPoint(x: 0.9, y: 0.9)
         )
         let accent = GradientIconView(
-            symbol: "sparkle",
-            pointSize: 16,
-            weight: .semibold,
+            symbol: "sparkle", pointSize: 16, weight: .semibold,
             colors: [AppColor.pink, UIColor(hex: 0xF2A6C6)]
         )
         addSubviews(big, accent)

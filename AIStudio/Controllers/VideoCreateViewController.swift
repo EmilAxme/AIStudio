@@ -36,7 +36,7 @@ final class VideoCreateViewController: UIViewController {
 
     private func setupView() {
         let back = UIButton(type: .system)
-        back.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        back.setImage(UIImage(named: "icArrow"), for: .normal)
         back.tintColor = .white
         back.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         titleLabel.text = "Clay Fool"

@@ -44,18 +44,16 @@ final class VideoGalleryViewController: UIViewController {
 
     private func setupNavBar() -> NSLayoutYAxisAnchor {
         let back = UIButton(type: .system)
-        back.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        back.setImage(UIImage(named: "icArrow"), for: .normal)
         back.tintColor = .white
-        back.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold), forImageIn: .normal)
         back.addTarget(self, action: #selector(goBack), for: .touchUpInside)
 
         let avatar = GradientView(colors: AppColor.inputGradient)
         avatar.layer.cornerRadius = 14
         avatar.clipsToBounds = true
-        let avatarIcon = UIImageView(image: UIImage(systemName: "photo.on.rectangle.angled"))
+        let avatarIcon = UIImageView(image: UIImage(named: "icImageToImage"))
         avatarIcon.tintColor = .white
         avatarIcon.contentMode = .scaleAspectFit
-        avatarIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 15, weight: .regular)
         avatarIcon.translatesAutoresizingMaskIntoConstraints = false
         avatar.addSubview(avatarIcon)
 
@@ -68,9 +66,8 @@ final class VideoGalleryViewController: UIViewController {
         titleStack.alignment = .center
 
         let refresh = UIButton(type: .system)
-        refresh.setImage(UIImage(systemName: "arrow.triangle.2.circlepath"), for: .normal)
+        refresh.setImage(UIImage(named: "icRefresh"), for: .normal)
         refresh.tintColor = .white
-        refresh.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .regular), forImageIn: .normal)
         refresh.addTarget(self, action: #selector(showVideoHistory), for: .touchUpInside)
 
         view.addSubviews(back, titleStack, refresh)
@@ -84,6 +81,8 @@ final class VideoGalleryViewController: UIViewController {
             avatar.heightAnchor.constraint(equalToConstant: 28),
             avatarIcon.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
             avatarIcon.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
+            avatarIcon.widthAnchor.constraint(equalToConstant: 18),
+            avatarIcon.heightAnchor.constraint(equalToConstant: 18),
             titleStack.leadingAnchor.constraint(equalTo: back.trailingAnchor, constant: 6),
             titleStack.centerYAnchor.constraint(equalTo: back.centerYAnchor),
             refresh.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),

@@ -41,7 +41,7 @@ final class ChatViewController: UIViewController {
     private func setupHeader() {
         header.backgroundColor = UIColor(hex: 0x130E16)
         let back = UIButton(type: .system)
-        back.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        back.setImage(UIImage(named: "icArrow"), for: .normal)
         back.tintColor = .white
         back.addTarget(self, action: #selector(goBack), for: .touchUpInside)
 
@@ -51,12 +51,14 @@ final class ChatViewController: UIViewController {
         let icon = UIImageView(image: UIImage(systemName: "sparkles"))
         icon.tintColor = .white
         icon.contentMode = .scaleAspectFit
-        icon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+        icon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconGradient.addSubview(icon)
         NSLayoutConstraint.activate([
             icon.centerXAnchor.constraint(equalTo: iconGradient.centerXAnchor),
-            icon.centerYAnchor.constraint(equalTo: iconGradient.centerYAnchor)
+            icon.centerYAnchor.constraint(equalTo: iconGradient.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 16),
+            icon.heightAnchor.constraint(equalToConstant: 16)
         ])
 
         let title = UILabel()
@@ -72,9 +74,8 @@ final class ChatViewController: UIViewController {
         textStack.spacing = 1
 
         let magic = UIButton(type: .system)
-        magic.setImage(UIImage(systemName: "arrow.triangle.2.circlepath"), for: .normal)
+        magic.setImage(UIImage(named: "icRefresh"), for: .normal)
         magic.tintColor = .white
-        magic.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .regular), forImageIn: .normal)
         magic.addTarget(self, action: #selector(showHistory), for: .touchUpInside)
 
         view.addSubviews(header)

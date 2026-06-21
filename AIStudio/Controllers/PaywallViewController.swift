@@ -27,9 +27,8 @@ final class PaywallViewController: UIViewController {
         ])
 
         let close = UIButton(type: .system)
-        close.setImage(UIImage(systemName: "xmark"), for: .normal)
+        close.setImage(UIImage(named: "icClose"), for: .normal)
         close.tintColor = UIColor.white.withAlphaComponent(0.85)
-        close.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 17, weight: .medium), forImageIn: .normal)
         close.contentHorizontalAlignment = .leading
         close.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
 
@@ -43,14 +42,13 @@ final class PaywallViewController: UIViewController {
         let benefits = UIStackView()
         benefits.axis = .vertical
         benefits.spacing = 14
-        [
-            ("sparkles", "Get results in seconds"),
-            ("pencil.and.scribble", "Turn any text into better writing"),
-            ("list.bullet.rectangle", "Simplify complex information"),
-            ("square.grid.2x2", "Create content with AI templates")
-        ].forEach { symbol, text in
-            benefits.addArrangedSubview(benefitRow(symbol: symbol, text: text))
-        }
+        let rows: [(GradientIconView, String)] = [
+            (GradientIconView(symbol: "sparkles", pointSize: 17, weight: .semibold), "Get results in seconds"),
+            (GradientIconView(imageName: "icMagicPencil"), "Turn any text into better writing"),
+            (GradientIconView(imageName: "icPrompt"), "Simplify complex information"),
+            (GradientIconView(imageName: "icImageToImage"), "Create content with AI templates")
+        ]
+        rows.forEach { benefits.addArrangedSubview(benefitRow(iconView: $0.0, text: $0.1)) }
 
         let cancelIcon = UIImageView(image: UIImage(systemName: "clock.arrow.circlepath"))
         cancelIcon.tintColor = AppColor.mutedText
@@ -115,9 +113,8 @@ final class PaywallViewController: UIViewController {
         unlock.addTarget(self, action: #selector(unlockTapped), for: .touchUpInside)
     }
 
-    private func benefitRow(symbol: String, text: String) -> UIView {
+    private func benefitRow(iconView icon: GradientIconView, text: String) -> UIView {
         let view = UIView()
-        let icon = GradientIconView(symbol: symbol, pointSize: 17, weight: .semibold)
         icon.translatesAutoresizingMaskIntoConstraints = false
         let label = UILabel()
         label.text = text
