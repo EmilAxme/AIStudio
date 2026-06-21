@@ -9,6 +9,7 @@ final class VideoResultViewController: UIViewController {
     private let videoService: VideoGenerationServicing
     private var resultURL: URL?
     private var generationTask: Task<Void, Never>?
+    private var downloadTask: Task<Void, Never>?
 
     private let resultImageView = UIImageView()
     private let shareButton = UIButton(type: .system)
@@ -30,7 +31,10 @@ final class VideoResultViewController: UIViewController {
 
     required init?(coder: NSCoder) { nil }
 
-    deinit { generationTask?.cancel() }
+    deinit {
+        generationTask?.cancel()
+        downloadTask?.cancel()
+    }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
@@ -296,10 +300,12 @@ final class VideoResultViewController: UIViewController {
         guard let url = resultURL else { return }
         let downloadButton = self.downloadButton
         downloadButton.setLoading(true)
-        Task { [weak self] in
+        downloadTask?.cancel()
+        downloadTask = Task { [weak self] in
             defer { Task { @MainActor in downloadButton.setLoading(false) } }
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
+                try Task.checkCancellation()
                 let temp = FileManager.default.temporaryDirectory
                     .appendingPathComponent("aistudio-\(UUID().uuidString).mp4")
                 try data.write(to: temp)
@@ -308,6 +314,8 @@ final class VideoResultViewController: UIViewController {
                 }
                 UISaveVideoAtPathToSavedPhotosAlbum(temp.path, nil, nil, nil)
                 await self?.presentSavedAlert(success: true)
+            } catch is CancellationError {
+                return
             } catch {
                 await self?.presentSavedAlert(success: false)
             }
