@@ -12,6 +12,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // subscription state is known up front.
         Apphud.start(apiKey: AppConfig.Apphud.apiKey)
         Apphud.setDelegate(AppServices.subscription)
+        // Capture Apphud's user id (main-actor API) so it's ready for the first
+        // network request and cached for off-main reads.
+        AppServices.userIdentifier.refresh()
         return true
     }
 }
