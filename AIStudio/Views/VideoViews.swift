@@ -74,7 +74,7 @@ final class FormOptionView: UIControl {
     init(title: String, value: String) {
         super.init(frame: .zero)
         backgroundColor = AppColor.surface
-        layer.cornerRadius = Layout.rowRadius
+        layer.cornerRadius = 24
         titleLabel.text = title
         titleLabel.textColor = AppColor.secondaryText
         titleLabel.font = AppFont.font(16, .regular)
@@ -122,13 +122,13 @@ final class UploadTile: UIControl {
     override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = false
-        layer.cornerRadius = 12
+        layer.cornerRadius = 16
 
         gradient.translatesAutoresizingMaskIntoConstraints = false
-        gradient.layer.cornerRadius = 12
+        gradient.layer.cornerRadius = 16
         gradient.clipsToBounds = true
         inner.backgroundColor = AppColor.background
-        inner.layer.cornerRadius = 10.5
+        inner.layer.cornerRadius = 14.5
         inner.translatesAutoresizingMaskIntoConstraints = false
         icon.tintColor = .white
         icon.contentMode = .scaleAspectFit
@@ -139,7 +139,7 @@ final class UploadTile: UIControl {
         spinner.translatesAutoresizingMaskIntoConstraints = false
 
         photoView.contentMode = .scaleAspectFill
-        photoView.layer.cornerRadius = 12
+        photoView.layer.cornerRadius = 16
         photoView.clipsToBounds = true
         photoView.isHidden = true
         photoView.translatesAutoresizingMaskIntoConstraints = false
