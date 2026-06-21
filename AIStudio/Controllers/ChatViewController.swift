@@ -8,12 +8,24 @@ final class ChatViewController: UIViewController {
     private let emptyStateView = ChatEmptyStateView()
     private var messages: [ChatMessage]
 
-    init(startEmpty: Bool = false) {
+    private let chatService: ChatServicing
+    /// Client-generated chat id; the backend creates the chat on first send and
+    /// echoes it back, so the whole conversation reuses this id.
+    private var chatID = UUID().uuidString
+    private var isAwaitingReply = false
+    private var errorMessage: String?
+    private var lastUserText: String?
+    private var replyTask: Task<Void, Never>?
+
+    init(startEmpty: Bool = false, chatService: ChatServicing = AppServices.chat) {
+        self.chatService = chatService
         messages = startEmpty ? [] : ChatViewController.seedMessages
         super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) { nil }
+
+    deinit { replyTask?.cancel() }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -156,35 +168,27 @@ final class ChatViewController: UIViewController {
     }
 
     private func renderMessages(animated: Bool) {
-        emptyStateView.isHidden = !messages.isEmpty
-        scrollView.isHidden = messages.isEmpty
+        let hasContent = !messages.isEmpty || isAwaitingReply || errorMessage != nil
+        emptyStateView.isHidden = hasContent
+        scrollView.isHidden = !hasContent
         messagesStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         messages.forEach { message in
-            let container = UIView()
-            let content: UIView
             switch message.sender {
             case .user:
-                content = ChatBubbleView(text: message.text)
-                container.addSubview(content)
-                content.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    content.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 48),
-                    content.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                    content.topAnchor.constraint(equalTo: container.topAnchor),
-                    content.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-                ])
+                let content = ChatBubbleView(text: message.text)
+                messagesStack.addArrangedSubview(userAligned(content))
             case .assistant:
-                content = AssistantMessageView(title: message.title, text: message.text)
-                container.addSubview(content)
-                content.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    content.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
-                    content.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
-                    content.topAnchor.constraint(equalTo: container.topAnchor),
-                    content.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-                ])
+                let content = AssistantMessageView(title: message.title, text: message.text)
+                messagesStack.addArrangedSubview(assistantAligned(content))
             }
-            messagesStack.addArrangedSubview(container)
+        }
+        if isAwaitingReply {
+            messagesStack.addArrangedSubview(assistantAligned(TypingIndicatorView()))
+        }
+        if let errorMessage {
+            let bubble = ChatErrorBubbleView(message: errorMessage)
+            bubble.onRetry = { [weak self] in self?.retryLastMessage() }
+            messagesStack.addArrangedSubview(assistantAligned(bubble))
         }
         if animated {
             UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
@@ -192,12 +196,72 @@ final class ChatViewController: UIViewController {
         DispatchQueue.main.async { [weak self] in self?.scrollToBottom() }
     }
 
+    /// User bubble: hugs the trailing edge, leaving a gap on the left.
+    private func userAligned(_ content: UIView) -> UIView {
+        let container = UIView()
+        content.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 48),
+            content.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            content.topAnchor.constraint(equalTo: container.topAnchor),
+            content.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        return container
+    }
+
+    /// Assistant content: inset 12pt on both sides (matches the reference).
+    private func assistantAligned(_ content: UIView) -> UIView {
+        let container = UIView()
+        content.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            content.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
+            content.topAnchor.constraint(equalTo: container.topAnchor),
+            content.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        return container
+    }
+
     private func send(text: String) {
         messages.append(ChatMessage(sender: .user, text: text))
+        lastUserText = text
+        requestReply(for: text)
+    }
+
+    private func retryLastMessage() {
+        guard let text = lastUserText else { return }
+        requestReply(for: text)
+    }
+
+    /// Sends `text` to the live API, driving the loading → success/error states.
+    private func requestReply(for text: String) {
+        replyTask?.cancel()
+        errorMessage = nil
+        isAwaitingReply = true
         renderMessages(animated: true)
-        AppServices.chat.reply(to: text) { [weak self] reply in
-            self?.messages.append(reply)
-            self?.renderMessages(animated: true)
+
+        replyTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let reply = try await self.chatService.send(message: text, chatID: self.chatID)
+                try Task.checkCancellation()
+                await MainActor.run {
+                    self.chatID = reply.chatID
+                    self.isAwaitingReply = false
+                    self.messages.append(ChatMessage(sender: .assistant, text: reply.assistantMessage))
+                    self.renderMessages(animated: true)
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    self.isAwaitingReply = false
+                    self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    self.renderMessages(animated: true)
+                }
+            }
         }
     }
 

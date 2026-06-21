@@ -73,6 +73,108 @@ final class AssistantMessageView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
+/// Loading state for an in-flight assistant reply: three pulsing dots inside an
+/// assistant-styled bubble, matching `AssistantMessageView`'s surface.
+final class TypingIndicatorView: UIView {
+    private let dots = [UIView(), UIView(), UIView()]
+
+    init() {
+        super.init(frame: .zero)
+        backgroundColor = AppColor.bubble
+        layer.cornerRadius = Layout.cardRadius
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.spacing = 6
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        dots.forEach { dot in
+            dot.backgroundColor = UIColor.white.withAlphaComponent(0.6)
+            dot.layer.cornerRadius = 4
+            dot.translatesAutoresizingMaskIntoConstraints = false
+            dot.widthAnchor.constraint(equalToConstant: 8).isActive = true
+            dot.heightAnchor.constraint(equalToConstant: 8).isActive = true
+            stack.addArrangedSubview(dot)
+        }
+        addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
+            stack.topAnchor.constraint(equalTo: topAnchor, constant: 18),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -18)
+        ])
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        window == nil ? stopAnimating() : startAnimating()
+    }
+
+    private func startAnimating() {
+        for (index, dot) in dots.enumerated() {
+            let pulse = CABasicAnimation(keyPath: "opacity")
+            pulse.fromValue = 0.3
+            pulse.toValue = 1.0
+            pulse.duration = 0.6
+            pulse.beginTime = CACurrentMediaTime() + Double(index) * 0.2
+            pulse.autoreverses = true
+            pulse.repeatCount = .infinity
+            dot.layer.add(pulse, forKey: "pulse")
+        }
+    }
+
+    private func stopAnimating() {
+        dots.forEach { $0.layer.removeAllAnimations() }
+    }
+}
+
+/// Visible error state for a failed reply: the human message plus a tap-to-retry
+/// affordance, in an assistant-aligned bubble.
+final class ChatErrorBubbleView: UIControl {
+    var onRetry: (() -> Void)?
+
+    init(message: String) {
+        super.init(frame: .zero)
+        backgroundColor = AppColor.bubble
+        layer.cornerRadius = Layout.cardRadius
+
+        let title = UILabel()
+        title.text = "Не удалось получить ответ"
+        title.font = AppFont.semibold(15)
+        title.textColor = UIColor(hex: 0xEB5B92)
+
+        let body = UILabel()
+        body.text = message
+        body.font = AppFont.regular(14)
+        body.textColor = UIColor.white.withAlphaComponent(0.82)
+        body.numberOfLines = 0
+
+        let retry = UILabel()
+        retry.text = "Нажмите, чтобы повторить"
+        retry.font = AppFont.medium(13)
+        retry.textColor = AppColor.secondaryText
+
+        let stack = UIStackView(arrangedSubviews: [title, body, retry])
+        stack.axis = .vertical
+        stack.spacing = 6
+        stack.isUserInteractionEnabled = false
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            stack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+        ])
+        addTarget(self, action: #selector(retryTapped), for: .touchUpInside)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    @objc private func retryTapped() { onRetry?() }
+}
+
 /// Builds the assistant body from a lightweight markup: lines, `•` bullets and
 /// `**bold**` lead-ins, mirroring the formatting in the reference design.
 enum ChatText {
