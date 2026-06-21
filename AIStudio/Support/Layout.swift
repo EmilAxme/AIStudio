@@ -4,7 +4,7 @@ enum Layout {
     static let horizontalInset: CGFloat = 16
     static let cardRadius: CGFloat = 20
     static let rowRadius: CGFloat = 16
-    static let buttonRadius: CGFloat = 28
+    static let buttonRadius: CGFloat = 24
     static let fieldRadius: CGFloat = 25
     static let pillRadius: CGFloat = 28
 }

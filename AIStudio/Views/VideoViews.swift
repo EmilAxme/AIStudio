@@ -52,9 +52,13 @@ final class CarouselImageCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.layer.cornerRadius = 16
+        contentView.layer.cornerCurve = .continuous
         contentView.clipsToBounds = true
         contentView.backgroundColor = AppColor.surface
         imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 16
+        imageView.layer.cornerCurve = .continuous
+        imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
         imageView.pinToEdges(of: contentView)

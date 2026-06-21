@@ -52,7 +52,7 @@ final class VideoResultViewController: UIViewController {
         resultImageView.translatesAutoresizingMaskIntoConstraints = false
 
         // Centered play glyph — signals this is a video result.
-        let play = UIImageView(image: UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .medium)))
+        let play = UIImageView(image: UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 42, weight: .medium)))
         play.tintColor = UIColor.white.withAlphaComponent(0.95)
         play.contentMode = .center
         play.layer.shadowColor = UIColor.black.cgColor
@@ -65,9 +65,9 @@ final class VideoResultViewController: UIViewController {
         // "Replace" pill (top-right) — restarts the generation.
         let replace = UIControl()
         replace.backgroundColor = UIColor(white: 0.32, alpha: 0.55)
-        replace.layer.cornerRadius = 16
+        replace.layer.cornerRadius = 20
         replace.translatesAutoresizingMaskIntoConstraints = false
-        let replaceIcon = UIImageView(image: UIImage(named: "icUnion"))
+        let replaceIcon = UIImageView(image: UIImage(named: "icRefresh2"))
         replaceIcon.tintColor = .white
         replaceIcon.contentMode = .scaleAspectFit
         let replaceLabel = UILabel()
@@ -87,16 +87,16 @@ final class VideoResultViewController: UIViewController {
         NSLayoutConstraint.activate([
             play.centerXAnchor.constraint(equalTo: resultImageView.centerXAnchor),
             play.centerYAnchor.constraint(equalTo: resultImageView.centerYAnchor),
-            play.widthAnchor.constraint(equalToConstant: 64),
-            play.heightAnchor.constraint(equalToConstant: 64),
+            play.widthAnchor.constraint(equalToConstant: 80),
+            play.heightAnchor.constraint(equalToConstant: 80),
 
             replace.topAnchor.constraint(equalTo: resultImageView.topAnchor, constant: 12),
             replace.trailingAnchor.constraint(equalTo: resultImageView.trailingAnchor, constant: -12),
-            replace.heightAnchor.constraint(equalToConstant: 32),
-            replaceIcon.widthAnchor.constraint(equalToConstant: 15),
-            replaceIcon.heightAnchor.constraint(equalToConstant: 15),
-            replaceStack.leadingAnchor.constraint(equalTo: replace.leadingAnchor, constant: 12),
-            replaceStack.trailingAnchor.constraint(equalTo: replace.trailingAnchor, constant: -12),
+            replace.heightAnchor.constraint(equalToConstant: 40),
+            replaceIcon.widthAnchor.constraint(equalToConstant: 18),
+            replaceIcon.heightAnchor.constraint(equalToConstant: 18),
+            replaceStack.leadingAnchor.constraint(equalTo: replace.leadingAnchor, constant: 14),
+            replaceStack.trailingAnchor.constraint(equalTo: replace.trailingAnchor, constant: -14),
             replaceStack.centerYAnchor.constraint(equalTo: replace.centerYAnchor)
         ])
 
