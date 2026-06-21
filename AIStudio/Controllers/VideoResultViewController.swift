@@ -1,10 +1,14 @@
 import UIKit
+import AVKit
 
-/// AI Video result screen: runs a mock generation (loading orb) then shows the
-/// generated result with Share / Download actions. Error state offers retry.
+/// AI Video result screen: runs the real generation (start + status polling,
+/// loading orb) then shows the result with Share / Download actions. Error state
+/// offers retry.
 final class VideoResultViewController: UIViewController {
     private let request: VideoRequest
-    private var shouldFail: Bool
+    private let videoService: VideoGenerationServicing
+    private var resultURL: URL?
+    private var generationTask: Task<Void, Never>?
 
     private let resultImageView = UIImageView()
     private let shareButton = UIButton(type: .system)
@@ -18,13 +22,15 @@ final class VideoResultViewController: UIViewController {
 
     private var state: ViewState = .loading { didSet { renderState() } }
 
-    init(request: VideoRequest, shouldFail: Bool = false) {
+    init(request: VideoRequest, videoService: VideoGenerationServicing = AppServices.video) {
         self.request = request
-        self.shouldFail = shouldFail
+        self.videoService = videoService
         super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) { nil }
+
+    deinit { generationTask?.cancel() }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
@@ -43,13 +49,15 @@ final class VideoResultViewController: UIViewController {
         header.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(header)
 
-        resultImageView.image = UIImage(named: request.imageName)
+        // Poster: the user's picked photo when available, else the template image.
+        resultImageView.image = request.images.first ?? UIImage(named: request.imageName)
         resultImageView.contentMode = .scaleAspectFill
         resultImageView.layer.cornerRadius = 24
         resultImageView.layer.cornerCurve = .continuous
         resultImageView.clipsToBounds = true
         resultImageView.isUserInteractionEnabled = true
         resultImageView.translatesAutoresizingMaskIntoConstraints = false
+        resultImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(playResult)))
 
         // Centered play glyph — signals this is a video result.
         let play = UIImageView(image: UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 42, weight: .medium)))
@@ -175,23 +183,54 @@ final class VideoResultViewController: UIViewController {
         ])
 
         shareButton.addAction(UIAction { [weak self] _ in self?.presentShareSheet() }, for: .touchUpInside)
-        downloadButton.addAction(UIAction { [weak self] _ in self?.presentSavedAlert() }, for: .touchUpInside)
+        downloadButton.addAction(UIAction { [weak self] _ in self?.saveResultToGallery() }, for: .touchUpInside)
     }
 
     @objc private func replaceTapped() {
-        shouldFail = false
         generate()
     }
 
+    /// Starts a real generation: posts to PixVerse, polls status to completion,
+    /// then surfaces the result URL. Cancellable; drives the loading/error states.
     private func generate() {
+        generationTask?.cancel()
+        resultURL = nil
         state = .loading
-        AppServices.video.generate(request: request, shouldFail: shouldFail) { [weak self] result in
+
+        let parameters = VideoGenerationParameters(
+            prompt: request.prompt,
+            imageData: request.images.first?.jpegData(compressionQuality: 0.9),
+            aspectRatio: request.aspectRatio,
+            quality: request.quality
+        )
+
+        generationTask = Task { [weak self] in
             guard let self else { return }
-            switch result {
-            case .success: self.state = .success
-            case .failure(let error): self.state = .error(error.localizedDescription)
+            do {
+                let url = try await self.videoService.generate(parameters)
+                try Task.checkCancellation()
+                await MainActor.run {
+                    self.resultURL = url
+                    self.state = .success
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    self.state = .error(message)
+                }
             }
         }
+    }
+
+    /// Plays the generated video (the real result URL) in a system player.
+    @objc private func playResult() {
+        guard let url = resultURL else { return }
+        let player = AVPlayer(url: url)
+        let controller = AVPlayerViewController()
+        controller.player = player
+        present(controller, animated: true) { player.play() }
     }
 
     private func renderState() {
@@ -226,7 +265,6 @@ final class VideoResultViewController: UIViewController {
         retry.heightAnchor.constraint(equalToConstant: 50).isActive = true
         retry.widthAnchor.constraint(equalToConstant: 200).isActive = true
         retry.addAction(UIAction { [weak self] _ in
-            self?.shouldFail = false
             self?.loadingStack.arrangedSubviews.last.flatMap { $0 as? GradientButton }?.removeFromSuperview()
             self?.generate()
         }, for: .touchUpInside)
@@ -246,13 +284,45 @@ final class VideoResultViewController: UIViewController {
     }
 
     private func presentShareSheet() {
-        let items: [Any] = [resultImageView.image as Any].compactMap { $0 }
-        let sheet = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        // Share the real generated video URL when available, else the poster image.
+        let items: [Any] = [resultURL as Any, resultImageView.image as Any].compactMap { $0 }
+        guard !items.isEmpty else { return }
+        let sheet = UIActivityViewController(activityItems: [items.first!], applicationActivities: nil)
         present(sheet, animated: true)
     }
 
-    private func presentSavedAlert() {
-        let alert = UIAlertController(title: "Saved", message: "The video has been saved to your gallery.", preferredStyle: .alert)
+    /// Downloads the generated video and saves it to the photo library.
+    private func saveResultToGallery() {
+        guard let url = resultURL else { return }
+        let downloadButton = self.downloadButton
+        downloadButton.setLoading(true)
+        Task { [weak self] in
+            defer { Task { @MainActor in downloadButton.setLoading(false) } }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let temp = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("aistudio-\(UUID().uuidString).mp4")
+                try data.write(to: temp)
+                guard UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(temp.path) else {
+                    throw VideoGenerationError.noResultURL
+                }
+                UISaveVideoAtPathToSavedPhotosAlbum(temp.path, nil, nil, nil)
+                await self?.presentSavedAlert(success: true)
+            } catch {
+                await self?.presentSavedAlert(success: false)
+            }
+        }
+    }
+
+    @MainActor
+    private func presentSavedAlert(success: Bool) {
+        let alert = UIAlertController(
+            title: success ? "Saved" : "Не удалось сохранить",
+            message: success
+                ? "The video has been saved to your gallery."
+                : "Не удалось загрузить видео. Попробуйте ещё раз.",
+            preferredStyle: .alert
+        )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }

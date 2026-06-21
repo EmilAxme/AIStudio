@@ -49,7 +49,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         case "videoCreate":
             nav.pushViewController(VideoCreateViewController(), animated: false)
         case "videoResult":
-            nav.pushViewController(VideoResultViewController(request: VideoRequest(imageName: "AstroGirl", aspectRatio: "16:9", quality: "1080p")), animated: false)
+            nav.pushViewController(VideoResultViewController(request: VideoRequest(prompt: "Astro Duo", imageName: "AstroGirl", aspectRatio: "16:9", quality: "1080p")), animated: false)
         case "paywall":
             DispatchQueue.main.async {
                 let paywall = PaywallViewController()

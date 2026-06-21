@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>AIStudio needs access to your photo gallery so you can upload an image to generate a video.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>AIStudio saves your generated videos to your photo gallery.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter-Regular.ttf</string>

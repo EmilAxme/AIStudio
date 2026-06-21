@@ -25,10 +25,18 @@ final class VideoCreateViewController: UIViewController {
     private var selectedImages: [UIImage?] = []
     private var pendingTileIndex = 0
     private var hasGrantedAccess = false
-    private var shouldFailNextGeneration = false
+
+    private let subscription: SubscriptionServicing
 
     private let formatOptions = ["16:9", "9:16", "1:1"]
     private let qualityOptions = ["540p", "720p", "1080p", "4K"]
+
+    init(subscription: SubscriptionServicing = AppServices.subscription) {
+        self.subscription = subscription
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { nil }
 
     // Carousel
     private let carouselInset: CGFloat = 36
@@ -115,8 +123,6 @@ final class VideoCreateViewController: UIViewController {
         format.addTarget(self, action: #selector(openFormat), for: .touchUpInside)
         quality.addTarget(self, action: #selector(openQuality), for: .touchUpInside)
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
-        let errorGesture = UILongPressGestureRecognizer(target: self, action: #selector(prepareError(_:)))
-        createButton.addGestureRecognizer(errorGesture)
 
         view.addSubviews(back, titleLabel, carousel, tilesStack, format, quality, createButton)
         let inset = Layout.horizontalInset
@@ -252,16 +258,31 @@ final class VideoCreateViewController: UIViewController {
 
     @objc private func createTapped() {
         guard createButton.isEnabled else { return }
-        let request = VideoRequest(imageName: currentTemplate.imageName, aspectRatio: format.value, quality: quality.value)
-        let resultVC = VideoResultViewController(request: request, shouldFail: shouldFailNextGeneration)
-        shouldFailNextGeneration = false
-        navigationController?.pushViewController(resultVC, animated: true)
+        // Premium gate: generation is locked behind a subscription. Without one we
+        // present the paywall and only proceed once the user unlocks (no relaunch).
+        guard subscription.isPremium else {
+            presentPaywall { [weak self] in self?.proceedToResult() }
+            return
+        }
+        proceedToResult()
     }
 
-    @objc private func prepareError(_ gesture: UILongPressGestureRecognizer) {
-        guard gesture.state == .began, createButton.isEnabled else { return }
-        shouldFailNextGeneration = true
-        createTapped()
+    private func proceedToResult() {
+        let request = VideoRequest(
+            prompt: currentTemplate.title,
+            imageName: currentTemplate.imageName,
+            images: selectedImages.compactMap { $0 },
+            aspectRatio: format.value,
+            quality: quality.value
+        )
+        navigationController?.pushViewController(VideoResultViewController(request: request), animated: true)
+    }
+
+    private func presentPaywall(onUnlocked: @escaping () -> Void) {
+        let paywall = PaywallViewController()
+        paywall.onUnlocked = onUnlocked
+        paywall.modalPresentationStyle = .fullScreen
+        present(paywall, animated: true)
     }
 
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
