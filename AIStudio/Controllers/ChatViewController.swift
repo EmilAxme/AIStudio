@@ -58,6 +58,12 @@ final class ChatViewController: UIViewController {
                 self?.composer.runSendTransitionDemo()
             }
         }
+        // Integration self-test: auto-send one message to exercise the live API.
+        if UserDefaults.standard.bool(forKey: "SELFTEST_CHAT") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.send(text: "Integration self-test — please reply.")
+            }
+        }
     }
     #endif
 
