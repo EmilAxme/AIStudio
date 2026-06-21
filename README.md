@@ -1,36 +1,80 @@
 # AIStudio
 
-UIKit-приложение для iOS 16+ по предоставленным визуальным референсам. Этот проход покрывает вёрстку, навигацию и моковые UI-состояния; сетевой слой и Apphud оставлены за протоколами в `Services/` для следующего этапа.
+iOS-приложение (UIKit) по макету Figma. Два модуля — **AI Text Chat** и **AI Video Generator** — плюс экран **Paywall**.
+
+Этот проход — **вёрстка**: пиксель-в-пиксель повторение экранов, навигация и мок-состояния (Loading / Success / Error). Сетевой слой и Apphud в этом проходе не реализованы, но под них оставлены чистые швы в `Services/` (протоколы + моковые реализации).
+
+## Стек
+
+- UIKit, программная вёрстка (Auto Layout / NSLayoutConstraint), без сторибордов и xib.
+- Минимальная версия — iOS 16.0.
+- Архитектура **MVC**: `Models` (плоские структуры) · `Views` (переиспользуемые компоненты/ячейки) · `Controllers` (по одному на экран). Без ViewModel и Coordinator.
+- Генерация проекта — **XcodeGen** (`project.yml`); `.xcodeproj` не коммитится.
+- Шрифт — системный **SF Pro** (в макете используется он; отдельные бинарники не нужны).
 
 ## Запуск
 
 ```sh
-brew install xcodegen # если ещё не установлен
+brew install xcodegen      # если не установлен
+cd AIStudio
 xcodegen generate
 open AIStudio.xcodeproj
 ```
 
-Выберите симулятор iPhone c iOS 16+ и запустите таргет `AIStudio`.
+Выбрать симулятор iPhone (макет рассчитан на 390×844 pt — iPhone 14/15/16), таргет `AIStudio`, Run.
 
-## Стек и структура
+## Структура
 
-- UIKit, программная вёрстка Auto Layout, MVC.
-- `App/` — lifecycle приложения.
-- `Controllers/` — экраны и навигация.
-- `Views/` — переиспользуемые карточки, кнопки, поля и состояния.
-- `Models/` — плоские модели UI.
-- `Services/` — протоколы и моковые реализации API/подписки.
-- `Support/` — палитра, шрифты, константы и расширения.
+```
+AIStudio/
+  project.yml
+  AIStudio/
+    App/          AppDelegate, SceneDelegate, Info.plist
+    Models/       ChatMessage, VideoRequest (+ ViewState), Subscription
+    Views/        GradientView/GlowView/GradientBorderView, GradientIcon (gradient-fill icon, sparkle logo, GradientLabel),
+                  AppButton (GradientButton), HomeFeatureCard, ChatViews, VideoViews, PaywallViews
+    Controllers/  Home, Chat, VideoGallery, VideoCreate, Paywall
+    Services/     протоколы + моки (Chat / VideoGeneration / Subscription) — задел под сеть и Apphud
+    Support/      UIColor+App (палитра), UIFont+App, Layout (константы)
+    Resources/    Assets.xcassets
+```
 
-## Экранный поток
+## Экраны
 
-1. Home — быстрый переход в AI Chat, AI Video или Paywall.
-2. AI Chat — моковая история и отправка сообщения с задержанным ответом.
-3. AI Video Gallery — сетка шаблонов и системный-style запрос доступа.
-4. Video Create — выбор изображения, loading, success и error/retry-состояния.
-5. Paywall — выбор тарифа и моковое открытие доступа без перезапуска.
+1. **Home** — герой-блок (лого, заголовок, поле «Ask anything»), бенто-карточки: «Turn Photo into Video» (→ AI Video), «Fix & Improve Writing» и «Understand Faster» (→ AI Chat). ⚙️ → Paywall.
+2. **AI Chat** — кастомный заголовок (аватар + «AI Chat» + дата), история переписки (user-бабл с градиентом, assistant-бабл с градиентным заголовком и форматированным текстом/буллетами), поле ввода. Отправка добавляет сообщение и через мок-задержку — ответ ассистента.
+3. **AI Video — Gallery** — заголовок с аватаром, скролл-чипы категорий, грид 2×N видео-шаблонов. Кнопка обновления показывает системный запрос доступа к фото.
+4. **AI Video — Create** («Clay Fool») — карусель-превью, загрузка изображения («+»), параметры Format / Quality и кнопка Create. Состояния:
+   - **Loading** — спиннер в кнопке/тайле + «Generating your video…»;
+   - **Success** — «Play video» + «Your video is ready» (мок через ~2 c);
+   - **Error / retry** — «Try again» + сообщение об ошибке.
+5. **Paywall** — заголовок, список преимуществ, тарифы Year/Month (выбранный — с градиентным бордером и бейджем SAVE 80%), кнопка Unlock now, футер.
+
+## Навигация
+
+`UINavigationController` с Home в корне (системный бар скрыт, у экранов кастомные шапки — но сохранены стандартные push-переходы и swipe-back). Home → push Chat / VideoGallery; VideoGallery → push VideoCreate; Paywall показывается модально (по тапу на ⚙️). Таб-бара в макете нет.
+
+## Мок-состояния
+
+Общий `enum ViewState { idle, loading, success, error(String) }` (`Models/VideoRequest.swift`). Экран Video Create гоняет UI через него. Сервисы (`Services/AppServices.swift`) — протоколы `ChatServicing` / `VideoGenerationServicing` / `SubscriptionServicing` с моковыми реализациями (задержки через `DispatchQueue`). Это точки подключения реального API и Apphud на следующем проходе.
+
+## Швы для тестов (только DEBUG)
+
+Запуск сразу в нужный экран/состояние (для снапшотов и ручной проверки; в Release вырезается):
+
+```sh
+xcrun simctl launch <udid> com.labs.fviu -INITIAL_SCREEN chat            # home|chat|videoGallery|videoCreate|paywall
+xcrun simctl launch <udid> com.labs.fviu -INITIAL_SCREEN videoCreate -DEBUG_VC_STATE loading   # loading|success|error
+```
 
 ## Допущения
 
-- В исходной выгрузке не было Figma design context и отдельных экспортов иконок/шрифтов. Для галереи использованы вырезки из переданных референсов, а иконки собраны на SF Symbols; шрифт — системный SF Pro.
-- Референс не содержит отдельного экрана генерационного результата и ошибки. Они реализованы как живые состояния формы: обычный тап `Create` даёт success, длинный тап по кнопке демонстрирует error с `Try again`.
+- Доступа к live-Figma не было (файл вне плана аккаунта) — вёрстка снята с переданных @3x-экспортов (`Тест.zip`); геометрия выверена попиксельным сравнением рендеров симулятора с макетами.
+- Корневой экран и переходы из макета неочевидны явно — взят Home как корень с push-навигацией (см. выше); Paywall — по ⚙️.
+- Отдельных кадров success/error для видео в макете нет — реализованы как живые состояния формы в стиле макета.
+- Изображения-шаблоны — вырезки из референса (плейсхолдеры); реальные приходят с API на следующем проходе.
+- Шрифт — системный SF Pro (совпадает с макетом), поэтому `UIAppFonts` пуст.
+
+## Статус
+
+Вёрстка готова, проект собирается под iOS 16 и запускается, мок-состояния работают, критических багов/падений нет. Следующие проходы: сетевой слой (реальные запросы, обработка Loading/Success/Error) и интеграция Apphud (Paywall, проверка подписки, гейтинг премиум-контента).

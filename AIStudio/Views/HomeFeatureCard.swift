@@ -16,11 +16,15 @@ final class HomeFeatureCard: UIControl {
         isFeatured: Bool = false
     ) {
         super.init(frame: .zero)
-        layer.cornerRadius = Layout.cardRadius
+        layer.cornerRadius = 20
         clipsToBounds = true
 
         if isFeatured {
-            let gradient = GradientView(colors: [UIColor(hex: 0x91C1EC), UIColor(hex: 0xA991CA), UIColor(hex: 0xC84680)])
+            let gradient = GradientView(
+                colors: [UIColor(hex: 0x9BC0EE), UIColor(hex: 0xB489B8), UIColor(hex: 0xD25287)],
+                startPoint: CGPoint(x: 0.15, y: 0),
+                endPoint: CGPoint(x: 0.85, y: 1)
+            )
             gradient.isUserInteractionEnabled = false
             gradient.translatesAutoresizingMaskIntoConstraints = false
             insertSubview(gradient, at: 0)
@@ -29,60 +33,82 @@ final class HomeFeatureCard: UIControl {
             backgroundColor = AppColor.surface
         }
 
-        iconBackground.backgroundColor = UIColor.white.withAlphaComponent(0.14)
-        iconBackground.layer.cornerRadius = 23
-        iconView.image = UIImage(systemName: symbol)
-        iconView.tintColor = .white
-        iconView.contentMode = .scaleAspectFit
+        let iconSize: CGFloat = isFeatured ? 44 : 38
+        iconBackground.backgroundColor = UIColor.white.withAlphaComponent(isFeatured ? 0.22 : 0.07)
+        iconBackground.layer.cornerRadius = iconSize / 2
+        let glyph: UIView
+        if isFeatured {
+            iconView.image = UIImage(systemName: symbol)
+            iconView.tintColor = .white
+            iconView.contentMode = .scaleAspectFit
+            iconView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 21, weight: .regular)
+            glyph = iconView
+        } else {
+            glyph = GradientIconView(symbol: symbol, pointSize: 18, weight: .semibold)
+        }
+        glyph.translatesAutoresizingMaskIntoConstraints = false
+
         titleLabel.text = title
-        titleLabel.font = .App.medium(isFeatured ? 20 : 17)
+        titleLabel.font = .systemFont(ofSize: isFeatured ? 20 : 16, weight: isFeatured ? .bold : .semibold)
         titleLabel.textColor = .white
         titleLabel.numberOfLines = 2
-        subtitleLabel.text = subtitle
-        subtitleLabel.font = .App.body(isFeatured ? 13 : 12)
-        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.68)
-        subtitleLabel.numberOfLines = 2
 
-        addSubviews(iconBackground, iconView, titleLabel, subtitleLabel)
+        subtitleLabel.text = subtitle
+        subtitleLabel.font = .systemFont(ofSize: isFeatured ? 13 : 12, weight: .regular)
+        subtitleLabel.textColor = isFeatured ? UIColor.white.withAlphaComponent(0.92) : AppColor.secondaryText
+        subtitleLabel.numberOfLines = 1
+        subtitleLabel.adjustsFontSizeToFitWidth = true
+        subtitleLabel.minimumScaleFactor = 0.85
+
+        let textStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        textStack.axis = .vertical
+        textStack.spacing = 5
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+
+        addSubviews(iconBackground, glyph, textStack)
         NSLayoutConstraint.activate([
-            iconBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            iconBackground.topAnchor.constraint(equalTo: topAnchor, constant: 18),
-            iconBackground.widthAnchor.constraint(equalToConstant: 46),
-            iconBackground.heightAnchor.constraint(equalToConstant: 46),
-            iconView.centerXAnchor.constraint(equalTo: iconBackground.centerXAnchor),
-            iconView.centerYAnchor.constraint(equalTo: iconBackground.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 25),
-            iconView.heightAnchor.constraint(equalToConstant: 25),
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            titleLabel.topAnchor.constraint(equalTo: iconBackground.bottomAnchor, constant: 16),
-            subtitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            subtitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8)
+            iconBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            iconBackground.topAnchor.constraint(equalTo: topAnchor, constant: 14),
+            iconBackground.widthAnchor.constraint(equalToConstant: iconSize),
+            iconBackground.heightAnchor.constraint(equalToConstant: iconSize),
+            glyph.centerXAnchor.constraint(equalTo: iconBackground.centerXAnchor),
+            glyph.centerYAnchor.constraint(equalTo: iconBackground.centerYAnchor),
+            textStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            textStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
         ])
 
         if isFeatured {
-            actionPill.backgroundColor = UIColor.white.withAlphaComponent(0.25)
-            actionPill.layer.cornerRadius = 18
+            actionPill.backgroundColor = UIColor.white.withAlphaComponent(0.26)
+            actionPill.layer.cornerRadius = 17
             actionLabel.text = "Ready in seconds"
-            actionLabel.font = .App.body(12)
+            actionLabel.font = .systemFont(ofSize: 12, weight: .medium)
             actionLabel.textColor = .white
+            let playCircle = UIView()
+            playCircle.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+            playCircle.layer.cornerRadius = 10
+            playCircle.translatesAutoresizingMaskIntoConstraints = false
             actionIcon.image = UIImage(systemName: "play.fill")
-            actionIcon.tintColor = .white
+            actionIcon.tintColor = UIColor(hex: 0xC04E83)
             actionIcon.contentMode = .scaleAspectFit
-            addSubviews(actionPill, actionLabel, actionIcon)
+            actionIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 8, weight: .bold)
+            addSubviews(actionPill, actionLabel, playCircle, actionIcon)
             NSLayoutConstraint.activate([
-                actionPill.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-                actionPill.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-                actionPill.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -13),
-                actionPill.heightAnchor.constraint(equalToConstant: 36),
+                actionPill.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+                actionPill.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14),
+                actionPill.heightAnchor.constraint(equalToConstant: 34),
                 actionLabel.leadingAnchor.constraint(equalTo: actionPill.leadingAnchor, constant: 14),
                 actionLabel.centerYAnchor.constraint(equalTo: actionPill.centerYAnchor),
-                actionIcon.trailingAnchor.constraint(equalTo: actionPill.trailingAnchor, constant: -14),
-                actionIcon.centerYAnchor.constraint(equalTo: actionPill.centerYAnchor),
-                actionIcon.widthAnchor.constraint(equalToConstant: 16),
-                actionIcon.heightAnchor.constraint(equalToConstant: 16)
+                playCircle.leadingAnchor.constraint(equalTo: actionLabel.trailingAnchor, constant: 8),
+                playCircle.trailingAnchor.constraint(equalTo: actionPill.trailingAnchor, constant: -5),
+                playCircle.centerYAnchor.constraint(equalTo: actionPill.centerYAnchor),
+                playCircle.widthAnchor.constraint(equalToConstant: 20),
+                playCircle.heightAnchor.constraint(equalToConstant: 20),
+                actionIcon.centerXAnchor.constraint(equalTo: playCircle.centerXAnchor),
+                actionIcon.centerYAnchor.constraint(equalTo: playCircle.centerYAnchor),
+                textStack.topAnchor.constraint(equalTo: iconBackground.bottomAnchor, constant: 36)
             ])
+        } else {
+            textStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16).isActive = true
         }
     }
 

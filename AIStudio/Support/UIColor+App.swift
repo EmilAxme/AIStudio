@@ -12,16 +12,24 @@ extension UIColor {
 }
 
 enum AppColor {
-    static let background = UIColor(hex: 0x09050E)
-    static let surface = UIColor(hex: 0x141019)
-    static let surfaceRaised = UIColor(hex: 0x1D1720)
-    static let field = UIColor(hex: 0x18121A)
+    // Surfaces (sampled from the @3x reference renders)
+    static let background = UIColor(hex: 0x0B070E)
+    static let surface = UIColor(hex: 0x1A141B)
+    static let surfaceRaised = UIColor(hex: 0x211B22)
+    static let bubble = UIColor(hex: 0x151017)
+    static let field = UIColor(hex: 0x100B13)
+    static let disabled = UIColor(hex: 0x1B171D)
+
+    // Text
     static let white = UIColor.white
-    static let secondaryText = UIColor(hex: 0xA39DA8)
-    static let mutedText = UIColor(hex: 0x67616C)
-    static let blue = UIColor(hex: 0x9CCBFF)
-    static let lavender = UIColor(hex: 0xBCAEEB)
-    static let pink = UIColor(hex: 0xEC5597)
-    static let separator = UIColor(hex: 0x4D4652)
-    static let inputGradient = [UIColor(hex: 0x9CCBFF), UIColor(hex: 0xBDABE7), UIColor(hex: 0xEC5597)]
+    static let secondaryText = UIColor(hex: 0x8E8A93)
+    static let mutedText = UIColor(hex: 0x6E6973)
+
+    // Brand gradient (left → right): periwinkle → mauve → pink
+    static let blue = UIColor(hex: 0x9DBEF0)
+    static let lavender = UIColor(hex: 0xC0A8E6)
+    static let pink = UIColor(hex: 0xE66298)
+    static let separator = UIColor(hex: 0x2C2730)
+    static let hairline = UIColor.white.withAlphaComponent(0.10)
+    static let inputGradient = [UIColor(hex: 0x9DBEF0), UIColor(hex: 0xC190C4), UIColor(hex: 0xE66298)]
 }

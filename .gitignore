@@ -1,5 +1,7 @@
 AIStudio.xcodeproj/
 DerivedData/
+build/
 .build/
 .swiftpm/
 .DS_Store
+_audit/

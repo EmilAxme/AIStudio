@@ -5,9 +5,13 @@ final class ChatBubbleView: UIView {
 
     init(text: String) {
         super.init(frame: .zero)
-        let gradient = GradientView(colors: AppColor.inputGradient)
+        let gradient = GradientView(
+            colors: AppColor.inputGradient,
+            startPoint: CGPoint(x: 0, y: 0.5),
+            endPoint: CGPoint(x: 1, y: 0.5)
+        )
         gradient.translatesAutoresizingMaskIntoConstraints = false
-        layer.cornerRadius = 24
+        layer.cornerRadius = 22
         clipsToBounds = true
         addSubview(gradient)
         gradient.pinToEdges(of: self)
@@ -29,35 +33,79 @@ final class ChatBubbleView: UIView {
 }
 
 final class AssistantMessageView: UIView {
-    private let titleLabel = UILabel()
     private let textLabel = UILabel()
 
     init(title: String?, text: String) {
         super.init(frame: .zero)
-        backgroundColor = AppColor.surface
+        backgroundColor = AppColor.bubble
         layer.cornerRadius = Layout.cardRadius
-        titleLabel.text = title
-        titleLabel.font = .App.bold(17)
-        titleLabel.textColor = AppColor.lavender
-        titleLabel.numberOfLines = 0
-        textLabel.text = text
-        textLabel.font = .App.body(16)
-        textLabel.textColor = UIColor.white.withAlphaComponent(0.78)
+
+        textLabel.attributedText = ChatText.body(from: text)
         textLabel.numberOfLines = 0
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.setContentCompressionResistancePriority(.required, for: .vertical)
-        addSubviews(titleLabel, textLabel)
+
+        var topAnchorRef = topAnchor
+        var topConstant: CGFloat = 18
+        if let title, !title.isEmpty {
+            let titleLabel = GradientLabel(text: title, font: .systemFont(ofSize: 17, weight: .bold))
+            titleLabel.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(titleLabel)
+            NSLayoutConstraint.activate([
+                titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+                titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+                titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 18)
+            ])
+            topAnchorRef = titleLabel.bottomAnchor
+            topConstant = 14
+        }
+
+        addSubview(textLabel)
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 18),
             textLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             textLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            textLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 18),
-            textLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
+            textLabel.topAnchor.constraint(equalTo: topAnchorRef, constant: topConstant),
+            textLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -18)
         ])
     }
 
     required init?(coder: NSCoder) { nil }
+}
+
+/// Builds the assistant body from a lightweight markup: lines, `•` bullets and
+/// `**bold**` lead-ins, mirroring the formatting in the reference design.
+enum ChatText {
+    static func body(from text: String) -> NSAttributedString {
+        let base = UIFont.systemFont(ofSize: 16, weight: .regular)
+        let bold = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        let bodyColor = UIColor.white.withAlphaComponent(0.82)
+        let result = NSMutableAttributedString()
+        let lines = text.components(separatedBy: "\n")
+        for (index, line) in lines.enumerated() {
+            let isBullet = line.hasPrefix("•")
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.lineSpacing = 4
+            paragraph.paragraphSpacing = isBullet ? 6 : 9
+            if isBullet {
+                paragraph.headIndent = 18
+            }
+            var isBold = false
+            for segment in line.components(separatedBy: "**") {
+                if !segment.isEmpty {
+                    result.append(NSAttributedString(string: segment, attributes: [
+                        .font: isBold ? bold : base,
+                        .foregroundColor: isBold ? UIColor.white : bodyColor,
+                        .paragraphStyle: paragraph
+                    ]))
+                }
+                isBold.toggle()
+            }
+            if index < lines.count - 1 {
+                result.append(NSAttributedString(string: "\n", attributes: [.paragraphStyle: paragraph]))
+            }
+        }
+        return result
+    }
 }
 
 final class ChatComposerView: UIView {

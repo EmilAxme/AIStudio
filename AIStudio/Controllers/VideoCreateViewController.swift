@@ -17,6 +17,18 @@ final class VideoCreateViewController: UIViewController {
         view.backgroundColor = AppColor.background
         setupView()
         setupActions()
+        #if DEBUG
+        if let s = UserDefaults.standard.string(forKey: "DEBUG_VC_STATE") {
+            selectedImageName = "ClayFool"
+            switch s {
+            case "loading": state = .loading
+            case "success": state = .success
+            case "error": state = .error("We couldn't create this video. Please try again.")
+            default: renderState()
+            }
+            return
+        }
+        #endif
         renderState()
     }
 
@@ -29,20 +41,23 @@ final class VideoCreateViewController: UIViewController {
         back.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         titleLabel.text = "Clay Fool"
         titleLabel.textColor = .white
-        titleLabel.font = .App.title(24)
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textAlignment = .center
         preview.image = UIImage(named: "AstroGirl")
         preview.contentMode = .scaleAspectFill
-        preview.layer.cornerRadius = 22
+        preview.layer.cornerRadius = 16
         preview.clipsToBounds = true
         stateLabel.textAlignment = .center
         stateLabel.font = .App.medium(15)
         stateLabel.numberOfLines = 2
 
+        let leftPeek = makePeek(image: "ClayFool")
+        let rightPeek = makePeek(image: "ClayFool")
+
         let content = UIView()
         content.translatesAutoresizingMaskIntoConstraints = false
         view.addSubviews(back, titleLabel, content)
-        content.addSubviews(preview, uploadTile, format, quality, createButton, stateLabel)
+        content.addSubviews(leftPeek, rightPeek, preview, uploadTile, format, quality, createButton, stateLabel)
         NSLayoutConstraint.activate([
             back.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             back.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
@@ -56,9 +71,17 @@ final class VideoCreateViewController: UIViewController {
             preview.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 12),
             preview.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
             preview.topAnchor.constraint(equalTo: content.topAnchor),
-            preview.heightAnchor.constraint(equalTo: preview.widthAnchor, multiplier: 0.94),
+            preview.heightAnchor.constraint(equalTo: preview.widthAnchor, multiplier: 0.74),
+            leftPeek.trailingAnchor.constraint(equalTo: preview.leadingAnchor, constant: -10),
+            leftPeek.topAnchor.constraint(equalTo: preview.topAnchor, constant: 20),
+            leftPeek.bottomAnchor.constraint(equalTo: preview.bottomAnchor, constant: -20),
+            leftPeek.widthAnchor.constraint(equalToConstant: 60),
+            rightPeek.leadingAnchor.constraint(equalTo: preview.trailingAnchor, constant: 10),
+            rightPeek.topAnchor.constraint(equalTo: preview.topAnchor, constant: 20),
+            rightPeek.bottomAnchor.constraint(equalTo: preview.bottomAnchor, constant: -20),
+            rightPeek.widthAnchor.constraint(equalToConstant: 60),
             uploadTile.leadingAnchor.constraint(equalTo: content.leadingAnchor),
-            uploadTile.topAnchor.constraint(equalTo: preview.bottomAnchor, constant: 28),
+            uploadTile.topAnchor.constraint(equalTo: preview.bottomAnchor, constant: 40),
             uploadTile.widthAnchor.constraint(equalToConstant: 82),
             uploadTile.heightAnchor.constraint(equalToConstant: 82),
             format.leadingAnchor.constraint(equalTo: content.leadingAnchor),
@@ -75,6 +98,15 @@ final class VideoCreateViewController: UIViewController {
             stateLabel.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             stateLabel.topAnchor.constraint(equalTo: createButton.bottomAnchor, constant: 12)
         ])
+    }
+
+    private func makePeek(image: String) -> UIImageView {
+        let peek = UIImageView(image: UIImage(named: image))
+        peek.contentMode = .scaleAspectFill
+        peek.layer.cornerRadius = 16
+        peek.clipsToBounds = true
+        peek.translatesAutoresizingMaskIntoConstraints = false
+        return peek
     }
 
     private func setupActions() {

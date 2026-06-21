@@ -4,21 +4,43 @@ final class VideoTemplateCell: UICollectionViewCell {
     static let reuseIdentifier = "VideoTemplateCell"
 
     private let imageView = UIImageView()
+    private let scrim = GradientView(
+        colors: [UIColor.black.withAlphaComponent(0), UIColor.black.withAlphaComponent(0.55)],
+        startPoint: CGPoint(x: 0.5, y: 0.45),
+        endPoint: CGPoint(x: 0.5, y: 1)
+    )
+    private let titleLabel = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.layer.cornerRadius = 24
+        contentView.layer.cornerRadius = 14
         contentView.clipsToBounds = true
+        contentView.backgroundColor = AppColor.surface
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        scrim.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.textColor = .white
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
+        contentView.addSubview(scrim)
+        contentView.addSubview(titleLabel)
         imageView.pinToEdges(of: contentView)
+        NSLayoutConstraint.activate([
+            scrim.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            scrim.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            scrim.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            scrim.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.5),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+        ])
     }
 
     required init?(coder: NSCoder) { nil }
 
-    func configure(image: UIImage?) {
+    func configure(image: UIImage?, title: String) {
         imageView.image = image
+        titleLabel.text = title
     }
 }
 
@@ -29,16 +51,16 @@ final class FormOptionView: UIControl {
     init(title: String, value: String) {
         super.init(frame: .zero)
         backgroundColor = AppColor.surface
-        layer.cornerRadius = Layout.pillRadius
+        layer.cornerRadius = Layout.rowRadius
         titleLabel.text = title
         titleLabel.textColor = AppColor.secondaryText
-        titleLabel.font = .App.body(18)
+        titleLabel.font = .systemFont(ofSize: 16, weight: .regular)
         valueLabel.text = value
         valueLabel.textColor = .white
-        valueLabel.font = .App.medium(18)
+        valueLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         addSubviews(titleLabel, valueLabel)
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 58),
+            heightAnchor.constraint(equalToConstant: 56),
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
@@ -57,28 +79,28 @@ final class UploadTile: UIControl {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        layer.cornerRadius = 22
+        layer.cornerRadius = 12
         clipsToBounds = true
         gradient.translatesAutoresizingMaskIntoConstraints = false
         inner.backgroundColor = AppColor.background
-        inner.layer.cornerRadius = 21
+        inner.layer.cornerRadius = 10.5
         inner.translatesAutoresizingMaskIntoConstraints = false
         icon.tintColor = .white
         icon.contentMode = .scaleAspectFit
+        icon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .light)
+        icon.translatesAutoresizingMaskIntoConstraints = false
         spinner.color = AppColor.lavender
         spinner.hidesWhenStopped = true
         spinner.translatesAutoresizingMaskIntoConstraints = false
         addSubviews(gradient, inner, icon, spinner)
         gradient.pinToEdges(of: self)
         NSLayoutConstraint.activate([
-            inner.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 1.25),
-            inner.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -1.25),
-            inner.topAnchor.constraint(equalTo: topAnchor, constant: 1.25),
-            inner.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -1.25),
+            inner.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 1.5),
+            inner.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -1.5),
+            inner.topAnchor.constraint(equalTo: topAnchor, constant: 1.5),
+            inner.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -1.5),
             icon.centerXAnchor.constraint(equalTo: centerXAnchor),
             icon.centerYAnchor.constraint(equalTo: centerYAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 30),
-            icon.heightAnchor.constraint(equalToConstant: 30),
             spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
             spinner.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])

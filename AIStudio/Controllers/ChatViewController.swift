@@ -12,7 +12,7 @@ final class ChatViewController: UIViewController {
         ),
         ChatMessage(
             sender: .assistant,
-            text: "Hi Alexander, welcome to the development team! We're all really looking forward to having you start next week, and we're confident you'll settle in quickly.\n\nHere are a few tips to help you get through your first week:\n\n•  Focus on getting up to speed — don't hesitate to ask questions if anything is unclear. We're used to helping new team members find their feet.\n\n•  Meet the team — we're having a short welcome meeting on Monday at 11:00 AM.\n\n•  Documentation — all the key materials are available in our internal knowledge base.",
+            text: "Hi Alexander, welcome to the development team! We're all really looking forward to having you start next week, and we're confident you'll settle in quickly.\nHere are a few tips to help you get through your first week:\n•  **Focus on getting up to speed** — don't hesitate to ask questions if anything is unclear. We're used to helping new team members find their feet.\n•  **Meet the team** — we're having a short welcome meeting on Monday at 11:00 AM. It'll be a great chance to connect with everyone.\n•  **Documentation** — all the key materials are available in our internal knowledge base. I'll send you the link separately.",
             title: "Welcome to the team, Alexander!"
         )
     ]
@@ -21,8 +21,8 @@ final class ChatViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = AppColor.background
         setupHeader()
-        setupMessages()
         setupComposer()
+        setupMessages()
         renderMessages(animated: false)
     }
 
@@ -35,36 +35,36 @@ final class ChatViewController: UIViewController {
         back.tintColor = .white
         back.addTarget(self, action: #selector(goBack), for: .touchUpInside)
 
-        let iconGradient = GradientView(colors: AppColor.inputGradient)
-        iconGradient.layer.cornerRadius = 20
+        let iconGradient = GradientView(colors: AppColor.inputGradient, startPoint: CGPoint(x: 0, y: 0.2), endPoint: CGPoint(x: 1, y: 0.9))
+        iconGradient.layer.cornerRadius = 15
         iconGradient.clipsToBounds = true
         let icon = UIImageView(image: UIImage(systemName: "sparkles"))
         icon.tintColor = .white
         icon.contentMode = .scaleAspectFit
+        icon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconGradient.addSubview(icon)
         NSLayoutConstraint.activate([
             icon.centerXAnchor.constraint(equalTo: iconGradient.centerXAnchor),
-            icon.centerYAnchor.constraint(equalTo: iconGradient.centerYAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 23),
-            icon.heightAnchor.constraint(equalToConstant: 23)
+            icon.centerYAnchor.constraint(equalTo: iconGradient.centerYAnchor)
         ])
 
         let title = UILabel()
         title.text = "AI Chat"
-        title.font = .App.title(23)
+        title.font = .systemFont(ofSize: 17, weight: .semibold)
         title.textColor = .white
         let date = UILabel()
         date.text = "26.03.2026"
-        date.font = .App.body(15)
-        date.textColor = AppColor.mutedText
+        date.font = .systemFont(ofSize: 12, weight: .regular)
+        date.textColor = AppColor.secondaryText
         let textStack = UIStackView(arrangedSubviews: [title, date])
         textStack.axis = .vertical
-        textStack.spacing = 2
+        textStack.spacing = 1
 
         let magic = UIButton(type: .system)
         magic.setImage(UIImage(systemName: "arrow.triangle.2.circlepath"), for: .normal)
         magic.tintColor = .white
+        magic.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .regular), forImageIn: .normal)
 
         view.addSubviews(header)
         header.addSubviews(back, iconGradient, textStack, magic)
@@ -72,21 +72,21 @@ final class ChatViewController: UIViewController {
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             header.topAnchor.constraint(equalTo: view.topAnchor),
-            header.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 68),
-            back.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 20),
-            back.centerYAnchor.constraint(equalTo: header.safeAreaLayoutGuide.centerYAnchor, constant: 22),
-            back.widthAnchor.constraint(equalToConstant: 32),
-            back.heightAnchor.constraint(equalToConstant: 42),
-            iconGradient.leadingAnchor.constraint(equalTo: back.trailingAnchor, constant: 16),
+            header.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 56),
+            back.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 16),
+            back.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25),
+            back.widthAnchor.constraint(equalToConstant: 34),
+            back.heightAnchor.constraint(equalToConstant: 34),
+            iconGradient.leadingAnchor.constraint(equalTo: back.trailingAnchor, constant: 6),
             iconGradient.centerYAnchor.constraint(equalTo: back.centerYAnchor),
-            iconGradient.widthAnchor.constraint(equalToConstant: 40),
-            iconGradient.heightAnchor.constraint(equalToConstant: 40),
-            textStack.leadingAnchor.constraint(equalTo: iconGradient.trailingAnchor, constant: 12),
-            textStack.centerYAnchor.constraint(equalTo: iconGradient.centerYAnchor),
-            magic.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -22),
-            magic.centerYAnchor.constraint(equalTo: iconGradient.centerYAnchor),
-            magic.widthAnchor.constraint(equalToConstant: 38),
-            magic.heightAnchor.constraint(equalToConstant: 38)
+            iconGradient.widthAnchor.constraint(equalToConstant: 30),
+            iconGradient.heightAnchor.constraint(equalToConstant: 30),
+            textStack.leadingAnchor.constraint(equalTo: iconGradient.trailingAnchor, constant: 8),
+            textStack.centerYAnchor.constraint(equalTo: back.centerYAnchor),
+            magic.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -16),
+            magic.centerYAnchor.constraint(equalTo: back.centerYAnchor),
+            magic.widthAnchor.constraint(equalToConstant: 34),
+            magic.heightAnchor.constraint(equalToConstant: 34)
         ])
     }
 
