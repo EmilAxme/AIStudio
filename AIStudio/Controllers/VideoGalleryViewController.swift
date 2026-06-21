@@ -33,7 +33,7 @@ final class VideoGalleryViewController: UIViewController {
         super.viewDidLayoutSubviews()
         guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
         let width = ((collectionView.bounds.width - Layout.horizontalInset * 2 - 14) / 2).rounded(.down)
-        let size = CGSize(width: width, height: (width * 1.35).rounded())
+        let size = CGSize(width: width, height: (width * 1.30).rounded())
         if layout.itemSize != size {
             layout.itemSize = size
             layout.invalidateLayout()
@@ -62,7 +62,7 @@ final class VideoGalleryViewController: UIViewController {
         let title = UILabel()
         title.text = "AI Video"
         title.textColor = .white
-        title.font = .systemFont(ofSize: 17, weight: .semibold)
+        title.font = AppFont.font(17, .semibold)
         let titleStack = UIStackView(arrangedSubviews: [avatar, title])
         titleStack.spacing = 8
         titleStack.alignment = .center
@@ -133,7 +133,7 @@ final class VideoGalleryViewController: UIViewController {
         }
         let label = UILabel()
         label.text = title
-        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.font = AppFont.font(15, .medium)
         label.textColor = isSelected ? .white : AppColor.secondaryText
         label.translatesAutoresizingMaskIntoConstraints = false
         chip.addSubview(label)
@@ -183,7 +183,7 @@ extension VideoGalleryViewController: UICollectionViewDataSource, UICollectionVi
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoTemplateCell.reuseIdentifier, for: indexPath) as! VideoTemplateCell
-        cell.configure(image: UIImage(named: "AstroGirl"), title: "Title")
+        cell.configure(image: UIImage(named: "GalleryGirl"), title: "Title")
         return cell
     }
 

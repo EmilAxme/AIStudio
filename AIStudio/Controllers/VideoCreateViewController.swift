@@ -41,7 +41,7 @@ final class VideoCreateViewController: UIViewController {
         back.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         titleLabel.text = "Clay Fool"
         titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.font = AppFont.font(17, .semibold)
         titleLabel.textAlignment = .center
         preview.image = UIImage(named: "AstroGirl")
         preview.contentMode = .scaleAspectFill

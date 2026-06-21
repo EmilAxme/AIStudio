@@ -15,27 +15,27 @@ final class PlanOptionView: UIControl {
 
     init(plan: SubscriptionPlan) {
         super.init(frame: .zero)
-        layer.cornerRadius = Layout.rowRadius
+        layer.cornerRadius = 24
         clipsToBounds = true
 
         borderGradient.isUserInteractionEnabled = false
         inner.backgroundColor = AppColor.background
-        inner.layer.cornerRadius = Layout.rowRadius - borderWidth
+        inner.layer.cornerRadius = 24 - borderWidth
         inner.isUserInteractionEnabled = false
 
         titleLabel.text = plan.title
-        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.font = AppFont.font(16, .medium)
         titleLabel.textColor = .white
         detailLabel.text = plan.detail
-        detailLabel.font = .systemFont(ofSize: 14, weight: .regular)
-        detailLabel.textColor = AppColor.mutedText
+        detailLabel.font = AppFont.font(14, .regular)
+        detailLabel.textColor = UIColor(hex: 0x606060)
 
         badge.layer.cornerRadius = 14
         badge.clipsToBounds = true
         badge.isUserInteractionEnabled = false
         badgeLabel.text = "SAVE 80%"
         badgeLabel.textColor = .white
-        badgeLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        badgeLabel.font = AppFont.font(12, .semibold)
         badgeLabel.translatesAutoresizingMaskIntoConstraints = false
         badge.addSubview(badgeLabel)
 
@@ -49,9 +49,9 @@ final class PlanOptionView: UIControl {
             inner.topAnchor.constraint(equalTo: topAnchor, constant: borderWidth),
             inner.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -borderWidth),
 
-            titleLabel.leadingAnchor.constraint(equalTo: inner.leadingAnchor, constant: 18),
+            titleLabel.leadingAnchor.constraint(equalTo: inner.leadingAnchor, constant: 24),
             titleLabel.topAnchor.constraint(equalTo: inner.topAnchor, constant: 14),
-            detailLabel.leadingAnchor.constraint(equalTo: inner.leadingAnchor, constant: 18),
+            detailLabel.leadingAnchor.constraint(equalTo: inner.leadingAnchor, constant: 24),
             detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
 
             badge.trailingAnchor.constraint(equalTo: inner.trailingAnchor, constant: -16),

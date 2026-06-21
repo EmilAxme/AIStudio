@@ -36,7 +36,7 @@ final class PaywallViewController: UIViewController {
         let title = UILabel()
         title.text = "Create anything\nyou want"
         title.textColor = .white
-        title.font = .systemFont(ofSize: 34, weight: .bold)
+        title.font = AppFont.font(34, .bold)
         title.numberOfLines = 2
         title.textAlignment = .left
 
@@ -59,7 +59,7 @@ final class PaywallViewController: UIViewController {
         let cancelLabel = UILabel()
         cancelLabel.text = "Cancel Anytime"
         cancelLabel.textColor = AppColor.mutedText
-        cancelLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        cancelLabel.font = AppFont.font(13, .regular)
         let cancel = UIStackView(arrangedSubviews: [cancelIcon, cancelLabel])
         cancel.spacing = 5
         cancel.alignment = .center
@@ -71,7 +71,7 @@ final class PaywallViewController: UIViewController {
             let label = UILabel()
             label.text = text
             label.textColor = AppColor.mutedText
-            label.font = .systemFont(ofSize: 11, weight: .regular)
+            label.font = AppFont.font(11, .regular)
             footer.addArrangedSubview(label)
         }
 
@@ -122,7 +122,7 @@ final class PaywallViewController: UIViewController {
         let label = UILabel()
         label.text = text
         label.textColor = .white
-        label.font = .systemFont(ofSize: 15, weight: .regular)
+        label.font = AppFont.font(15, .regular)
         view.addSubviews(icon, label)
         NSLayoutConstraint.activate([
             view.heightAnchor.constraint(equalToConstant: 26),

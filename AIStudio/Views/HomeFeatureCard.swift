@@ -21,9 +21,9 @@ final class HomeFeatureCard: UIControl {
 
         if isFeatured {
             let gradient = GradientView(
-                colors: [UIColor(hex: 0x9BC0EE), UIColor(hex: 0xB489B8), UIColor(hex: 0xD25287)],
-                startPoint: CGPoint(x: 0.15, y: 0),
-                endPoint: CGPoint(x: 0.85, y: 1)
+                colors: [UIColor(hex: 0x98C6F7), UIColor(hex: 0xEB5B92)],
+                startPoint: CGPoint(x: 0.05, y: 0),
+                endPoint: CGPoint(x: 0.95, y: 1)
             )
             gradient.isUserInteractionEnabled = false
             gradient.translatesAutoresizingMaskIntoConstraints = false
@@ -34,7 +34,7 @@ final class HomeFeatureCard: UIControl {
         }
 
         let iconSize: CGFloat = isFeatured ? 44 : 38
-        iconBackground.backgroundColor = UIColor.white.withAlphaComponent(isFeatured ? 0.22 : 0.07)
+        iconBackground.backgroundColor = UIColor.white.withAlphaComponent(isFeatured ? 0.15 : 0.07)
         iconBackground.layer.cornerRadius = iconSize / 2
         let glyph: UIView
         if isFeatured {
@@ -49,13 +49,13 @@ final class HomeFeatureCard: UIControl {
         glyph.translatesAutoresizingMaskIntoConstraints = false
 
         titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: isFeatured ? 20 : 16, weight: isFeatured ? .bold : .semibold)
+        titleLabel.font = AppFont.font(isFeatured ? 20 : 16, isFeatured ? .medium : .semibold)
         titleLabel.textColor = .white
         titleLabel.numberOfLines = 2
 
         subtitleLabel.text = subtitle
-        subtitleLabel.font = .systemFont(ofSize: isFeatured ? 13 : 12, weight: .regular)
-        subtitleLabel.textColor = isFeatured ? UIColor.white.withAlphaComponent(0.92) : AppColor.secondaryText
+        subtitleLabel.font = AppFont.font(isFeatured ? 14 : 12, .regular)
+        subtitleLabel.textColor = isFeatured ? UIColor.white.withAlphaComponent(0.7) : AppColor.secondaryText
         subtitleLabel.numberOfLines = 1
         subtitleLabel.adjustsFontSizeToFitWidth = true
         subtitleLabel.minimumScaleFactor = 0.85
@@ -81,7 +81,7 @@ final class HomeFeatureCard: UIControl {
             actionPill.backgroundColor = UIColor.white.withAlphaComponent(0.26)
             actionPill.layer.cornerRadius = 17
             actionLabel.text = "Ready in seconds"
-            actionLabel.font = .systemFont(ofSize: 12, weight: .medium)
+            actionLabel.font = AppFont.font(12, .medium)
             actionLabel.textColor = .white
             let playCircle = UIView()
             playCircle.backgroundColor = UIColor.white.withAlphaComponent(0.9)

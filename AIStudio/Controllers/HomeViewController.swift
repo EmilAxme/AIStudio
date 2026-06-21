@@ -13,7 +13,7 @@ final class HomeViewController: UIViewController {
     private let askLabel = UILabel()
     private let featuredCard = HomeFeatureCard(
         title: "Turn Photo\ninto Video",
-        subtitle: "Animate  •  Templates",
+        subtitle: "Instant  •  Templates",
         symbol: "photo.on.rectangle.angled",
         isFeatured: true
     )
@@ -56,7 +56,7 @@ final class HomeViewController: UIViewController {
         sparkleLogo.translatesAutoresizingMaskIntoConstraints = false
 
         titleLabel.text = "Your AI tools,\nready to go"
-        titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
+        titleLabel.font = AppFont.font(28, .bold)
         titleLabel.textColor = .white
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 2
@@ -71,7 +71,7 @@ final class HomeViewController: UIViewController {
         askIconBackground.addSubview(askIcon)
         askLabel.text = "Ask anything..."
         askLabel.textColor = AppColor.secondaryText
-        askLabel.font = .systemFont(ofSize: 16, weight: .regular)
+        askLabel.font = AppFont.font(16, .regular)
         askLabel.translatesAutoresizingMaskIntoConstraints = false
         askControl.addContent(askIconBackground)
         askControl.addContent(askLabel)

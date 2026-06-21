@@ -11,13 +11,14 @@ final class ChatBubbleView: UIView {
             endPoint: CGPoint(x: 1, y: 0.5)
         )
         gradient.translatesAutoresizingMaskIntoConstraints = false
-        layer.cornerRadius = 22
+        layer.cornerRadius = 24
+        layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner]
         clipsToBounds = true
         addSubview(gradient)
         gradient.pinToEdges(of: self)
         textLabel.text = text
         textLabel.textColor = .white
-        textLabel.font = .App.body(17)
+        textLabel.font = AppFont.regular(16)
         textLabel.numberOfLines = 0
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(textLabel)
@@ -48,7 +49,7 @@ final class AssistantMessageView: UIView {
         var topAnchorRef = topAnchor
         var topConstant: CGFloat = 18
         if let title, !title.isEmpty {
-            let titleLabel = GradientLabel(text: title, font: .systemFont(ofSize: 17, weight: .bold))
+            let titleLabel = GradientLabel(text: title, font: AppFont.font(17, .bold))
             titleLabel.translatesAutoresizingMaskIntoConstraints = false
             addSubview(titleLabel)
             NSLayoutConstraint.activate([
@@ -76,8 +77,8 @@ final class AssistantMessageView: UIView {
 /// `**bold**` lead-ins, mirroring the formatting in the reference design.
 enum ChatText {
     static func body(from text: String) -> NSAttributedString {
-        let base = UIFont.systemFont(ofSize: 16, weight: .regular)
-        let bold = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        let base = AppFont.font(16, .regular)
+        let bold = AppFont.font(16, .semibold)
         let bodyColor = UIColor.white.withAlphaComponent(0.82)
         let result = NSMutableAttributedString()
         let lines = text.components(separatedBy: "\n")

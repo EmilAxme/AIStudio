@@ -5,21 +5,21 @@ final class VideoTemplateCell: UICollectionViewCell {
 
     private let imageView = UIImageView()
     private let scrim = GradientView(
-        colors: [UIColor.black.withAlphaComponent(0), UIColor.black.withAlphaComponent(0.55)],
-        startPoint: CGPoint(x: 0.5, y: 0.45),
+        colors: [UIColor(hex: 0x1F191F, alpha: 0), UIColor(hex: 0x1F191F, alpha: 0.6)],
+        startPoint: CGPoint(x: 0.5, y: 0.4),
         endPoint: CGPoint(x: 0.5, y: 1)
     )
     private let titleLabel = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.layer.cornerRadius = 14
+        contentView.layer.cornerRadius = 24
         contentView.clipsToBounds = true
         contentView.backgroundColor = AppColor.surface
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         scrim.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.font = AppFont.regular(16)
         titleLabel.textColor = .white
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
@@ -31,7 +31,7 @@ final class VideoTemplateCell: UICollectionViewCell {
             scrim.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             scrim.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             scrim.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.5),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
         ])
     }
@@ -54,10 +54,10 @@ final class FormOptionView: UIControl {
         layer.cornerRadius = Layout.rowRadius
         titleLabel.text = title
         titleLabel.textColor = AppColor.secondaryText
-        titleLabel.font = .systemFont(ofSize: 16, weight: .regular)
+        titleLabel.font = AppFont.font(16, .regular)
         valueLabel.text = value
         valueLabel.textColor = .white
-        valueLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        valueLabel.font = AppFont.font(16, .semibold)
         addSubviews(titleLabel, valueLabel)
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 56),

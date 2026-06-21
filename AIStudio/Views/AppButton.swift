@@ -17,7 +17,7 @@ final class GradientButton: UIButton {
         gradientView.translatesAutoresizingMaskIntoConstraints = false
         gradientView.pinToEdges(of: self)
         setTitle(title, for: .normal)
-        titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel?.font = AppFont.font(17, .semibold)
         setTitleColor(.white, for: .normal)
         setTitleColor(AppColor.mutedText, for: .disabled)
         spinner.color = .white

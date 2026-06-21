@@ -51,11 +51,11 @@ final class ChatViewController: UIViewController {
 
         let title = UILabel()
         title.text = "AI Chat"
-        title.font = .systemFont(ofSize: 17, weight: .semibold)
+        title.font = AppFont.font(17, .semibold)
         title.textColor = .white
         let date = UILabel()
         date.text = "26.03.2026"
-        date.font = .systemFont(ofSize: 12, weight: .regular)
+        date.font = AppFont.font(12, .regular)
         date.textColor = AppColor.secondaryText
         let textStack = UIStackView(arrangedSubviews: [title, date])
         textStack.axis = .vertical
@@ -142,7 +142,7 @@ final class ChatViewController: UIViewController {
                 container.addSubview(content)
                 content.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
-                    content.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                    content.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 48),
                     content.trailingAnchor.constraint(equalTo: container.trailingAnchor),
                     content.topAnchor.constraint(equalTo: container.topAnchor),
                     content.bottomAnchor.constraint(equalTo: container.bottomAnchor)
