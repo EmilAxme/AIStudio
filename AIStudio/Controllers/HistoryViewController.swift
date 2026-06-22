@@ -171,12 +171,20 @@ final class HistoryViewController: UIViewController {
     // MARK: - Factories
 
     private static var mockSections: [HistorySection] {
-        let line = "Hello, this is a test recording. I'm checking how well the app converts speech into text."
-        let row = HistoryItem(title: line, time: "5:32 AM")
+        func row(_ title: String, _ time: String) -> HistoryItem { HistoryItem(title: title, time: time) }
         return [
-            HistorySection(title: "Today", items: [row, row]),
-            HistorySection(title: "Yesterday", items: [row, row]),
-            HistorySection(title: "March 4", items: [row, row])
+            HistorySection(title: "Today", items: [
+                row("Rewrite a paragraph to sound clearer", "9:41 AM"),
+                row("Summarize an article", "8:15 AM")
+            ]),
+            HistorySection(title: "Yesterday", items: [
+                row("Fix grammar in an email", "6:02 PM"),
+                row("Explain a concept simply", "1:20 PM")
+            ]),
+            HistorySection(title: "March 4", items: [
+                row("Draft a short message", "11:30 AM"),
+                row("Translate a sentence", "10:05 AM")
+            ])
         ]
     }
 

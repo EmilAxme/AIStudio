@@ -408,7 +408,7 @@ final class ChatComposerView: UIView {
     #if DEBUG
     /// Snapshot/QA helper: drops in demo text and runs the empty→send morph so the
     /// transition can be captured on launch. Compiled out of Release builds.
-    func runSendTransitionDemo(_ text: String = "Write a poem about the sea") {
+    func runSendTransitionDemo(_ text: String = "Test message") {
         textField.text = text
         applySendState(true, animated: true)
     }

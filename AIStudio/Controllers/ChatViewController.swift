@@ -62,7 +62,7 @@ final class ChatViewController: UIViewController {
         // Integration self-test: auto-send one message to exercise the live API.
         if UserDefaults.standard.bool(forKey: "SELFTEST_CHAT") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.send(text: "Integration self-test — please reply.")
+                self?.send(text: "Test message")
             }
         }
         // Snapshot helper: hold the typing indicator on screen.
@@ -292,14 +292,11 @@ final class ChatViewController: UIViewController {
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
 
     private static let seedMessages: [ChatMessage] = [
-        ChatMessage(
-            sender: .user,
-            text: "Hi! Can you help me write a short welcome email for a new employee joining our team?"
-        ),
+        ChatMessage(sender: .user, text: "Can you help me rewrite a sentence to sound clearer?"),
         ChatMessage(
             sender: .assistant,
-            text: "Hi Alexander, welcome to the development team! We're all really looking forward to having you start next week, and we're confident you'll settle in quickly.\nHere are a few tips to help you get through your first week:\n•  **Focus on getting up to speed** — don't hesitate to ask questions if anything is unclear. We're used to helping new team members find their feet.\n•  **Meet the team** — we're having a short welcome meeting on Monday at 11:00 AM. It'll be a great chance to connect with everyone.\n•  **Documentation** — all the key materials are available in our internal knowledge base. I'll send you the link separately.",
-            title: "Welcome to the team, Alexander!"
+            text: "Send me the sentence and I'll suggest a clearer version. You can also tell me the tone you want, for example formal or friendly.",
+            title: "Sure"
         )
     ]
 }
