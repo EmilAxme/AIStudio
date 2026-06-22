@@ -17,7 +17,7 @@ final class PlanOptionView: UIControl {
     /// The product this row represents, set once the paywall loads.
     var product: ApphudProduct?
 
-    init(showsSaveBadge: Bool, placeholderTitle: String) {
+    init(placeholderTitle: String) {
         super.init(frame: .zero)
         layer.cornerRadius = 24
         clipsToBounds = true
@@ -37,7 +37,6 @@ final class PlanOptionView: UIControl {
         badge.layer.cornerRadius = 14
         badge.clipsToBounds = true
         badge.isUserInteractionEnabled = false
-        badgeLabel.text = "SAVE 80%"
         badgeLabel.textColor = .white
         badgeLabel.font = AppFont.font(12, .semibold)
         badgeLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -65,14 +64,14 @@ final class PlanOptionView: UIControl {
             badgeLabel.trailingAnchor.constraint(equalTo: badge.trailingAnchor, constant: -14),
             badgeLabel.centerYAnchor.constraint(equalTo: badge.centerYAnchor)
         ])
-        badge.isHidden = !showsSaveBadge
+        badge.isHidden = true
         updateAppearance()
     }
 
     required init?(coder: NSCoder) { nil }
 
     /// Populates the row from a loaded product: title = plan + per-week price,
-    /// detail = full localized price. All amounts come from StoreKit, never hard-coded.
+    /// detail = full localized price. All amounts come from StoreKit.
     func configure(product: ApphudProduct, planName: String) {
         self.product = product
         let trial = product.hasFreeTrial ? " · Free trial" : ""
@@ -84,10 +83,14 @@ final class PlanOptionView: UIControl {
         detailLabel.text = product.displayPriceString ?? " "
     }
 
-    /// Toggles the "SAVE …" badge (e.g. hide it when there's no second plan to
-    /// compare against).
-    func setSaveBadgeHidden(_ hidden: Bool) {
-        badge.isHidden = hidden
+    /// Shows "SAVE n%" when a savings figure is available, otherwise hides the badge.
+    func setSaveBadge(percent: Int?) {
+        if let percent, percent > 0 {
+            badgeLabel.text = "SAVE \(percent)%"
+            badge.isHidden = false
+        } else {
+            badge.isHidden = true
+        }
     }
 
     private func updateAppearance() {

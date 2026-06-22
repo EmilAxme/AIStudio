@@ -3,8 +3,8 @@ import ApphudSDK
 
 final class PaywallViewController: UIViewController {
     private let topGlow = GlowView(tint: UIColor(hex: 0x5A3A66), intensity: 0.55)
-    private let yearly = PlanOptionView(showsSaveBadge: true, placeholderTitle: "Year")
-    private let monthly = PlanOptionView(showsSaveBadge: false, placeholderTitle: "Month")
+    private let yearly = PlanOptionView(placeholderTitle: "Year")
+    private let monthly = PlanOptionView(placeholderTitle: "Month")
     private let unlock = GradientButton(title: "Unlock now")
     private let restoreLabel = UILabel()
     private var selectedPlanView: PlanOptionView
@@ -212,9 +212,8 @@ final class PaywallViewController: UIViewController {
         configureRow(yearly, with: resolvedYearly, fallbackName: "Year")
         configureRow(monthly, with: resolvedMonthly, fallbackName: "Month")
 
-        // The "SAVE" badge only makes sense when a longer plan sits beside a shorter one.
-        let showBadge = resolvedYearly?.skProduct?.subscriptionPeriod?.unit == .year && resolvedMonthly != nil
-        yearly.setSaveBadgeHidden(!showBadge)
+        // Savings badge: computed from the two plans' per-week prices, not hard-coded.
+        yearly.setSaveBadge(percent: Self.savingsPercent(cheaper: resolvedYearly, baseline: resolvedMonthly))
 
         // Default the selection to a visible row that actually has a product.
         if selectedPlanView.product == nil || selectedPlanView.isHidden {
@@ -231,6 +230,15 @@ final class PaywallViewController: UIViewController {
             row.isHidden = true
             row.product = nil
         }
+    }
+
+    /// Percentage the `cheaper` plan saves per week vs `baseline`, rounded.
+    /// Returns nil unless both per-week prices are known and `cheaper` is actually cheaper.
+    private static func savingsPercent(cheaper: ApphudProduct?, baseline: ApphudProduct?) -> Int? {
+        guard let low = cheaper?.weeklyPriceValue, let high = baseline?.weeklyPriceValue,
+              high.doubleValue > 0, low.doubleValue < high.doubleValue else { return nil }
+        let saved = (high.doubleValue - low.doubleValue) / high.doubleValue * 100
+        return Int(saved.rounded())
     }
 
     /// Names a plan from its real subscription period, falling back to the row's slot.

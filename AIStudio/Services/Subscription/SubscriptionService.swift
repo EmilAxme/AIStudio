@@ -108,9 +108,8 @@ extension ApphudProduct {
         skProduct?.introductoryPrice?.paymentMode == .freeTrial
     }
 
-    /// Localized per-week price derived from the product's total price and period,
-    /// e.g. a $69.99/year product → "$1.35". Returns `nil` if unavailable.
-    var weeklyPriceString: String? {
+    /// Per-week price (numeric) derived from the product's total price and period.
+    var weeklyPriceValue: NSDecimalNumber? {
         guard let sk = skProduct, let period = sk.subscriptionPeriod else { return nil }
         let weeksPerUnit: Double
         switch period.unit {
@@ -122,10 +121,15 @@ extension ApphudProduct {
         }
         let totalWeeks = weeksPerUnit * Double(period.numberOfUnits)
         guard totalWeeks > 0 else { return nil }
-        let weekly = sk.price.dividing(by: NSDecimalNumber(value: totalWeeks))
+        return sk.price.dividing(by: NSDecimalNumber(value: totalWeeks))
+    }
+
+    /// Localized per-week price, e.g. a $69.99/year product becomes "$1.35".
+    var weeklyPriceString: String? {
+        guard let weekly = weeklyPriceValue, let locale = skProduct?.priceLocale else { return nil }
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = sk.priceLocale
+        formatter.locale = locale
         return formatter.string(from: weekly)
     }
 }
