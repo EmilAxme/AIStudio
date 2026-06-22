@@ -30,7 +30,7 @@ final class SubscriptionService: NSObject, SubscriptionServicing {
             await MainActor.run { Apphud.paywallShown(paywall) }
             #if DEBUG
             let ids = paywall.products.map { $0.productId }.joined(separator: ", ")
-            NSLog("📦 Apphud paywall '\(paywall.identifier)' products: [\(ids)]")
+            NSLog("[Apphud] paywall '\(paywall.identifier)' products: [\(ids)]")
             #endif
         }
         return paywall

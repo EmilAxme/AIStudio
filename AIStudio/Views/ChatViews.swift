@@ -246,9 +246,7 @@ final class ChatComposerView: UIView {
     let textField = UITextField()
     var onSend: ((String) -> Void)?
 
-    /// Trailing action: an outlined mic while empty that morphs into a gradient
-    /// paper-plane Send the moment there is text. The mic shrinks out, the gradient
-    /// circle springs in and the plane flies up into place; clearing the field reverses it.
+    // Trailing button: mic when empty, Send when there is text (animated swap).
     private let actionButton = UIControl()
     private let actionRing = UIView()
     private let actionGradient = GradientView(
@@ -261,8 +259,6 @@ final class ChatComposerView: UIView {
     private let haptic = UIImpactFeedbackGenerator(style: .light)
     private var isSendState = false
 
-    /// Resting transform for the inactive icon: nudged toward the lower-left and shrunk,
-    /// so the plane appears to "take off" toward the upper-right on activation.
     private static let tuckedAway = CGAffineTransform(translationX: -4, y: 4).scaledBy(x: 0.5, y: 0.5)
     private static let shrunk = CGAffineTransform(scaleX: 0.5, y: 0.5)
 

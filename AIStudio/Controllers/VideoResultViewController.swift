@@ -63,7 +63,6 @@ final class VideoResultViewController: UIViewController {
         resultImageView.translatesAutoresizingMaskIntoConstraints = false
         resultImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(playResult)))
 
-        // Centered play glyph — signals this is a video result.
         let play = UIImageView(image: UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 42, weight: .medium)))
         play.tintColor = UIColor.white.withAlphaComponent(0.95)
         play.contentMode = .center
@@ -74,7 +73,7 @@ final class VideoResultViewController: UIViewController {
         play.translatesAutoresizingMaskIntoConstraints = false
         resultImageView.addSubview(play)
 
-        // "Replace" pill (top-right) — restarts the generation.
+        // Replace pill: restarts generation.
         let replace = UIControl()
         replace.backgroundColor = UIColor(white: 0.32, alpha: 0.55)
         replace.layer.cornerRadius = 20

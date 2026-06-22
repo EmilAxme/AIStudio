@@ -69,18 +69,18 @@ final class URLSessionNetworkService: NetworkService {
 
     private func logRequest(_ request: URLRequest) {
         #if DEBUG
-        logger.debug("➡️ \(request.httpMethod ?? "?", privacy: .public) \(request.url?.absoluteString ?? "?", privacy: .public)")
+        logger.debug("[req] \(request.httpMethod ?? "?", privacy: .public) \(request.url?.absoluteString ?? "?", privacy: .public)")
         if let body = request.httpBody, let text = String(data: body, encoding: .utf8), !text.isEmpty {
-            logger.debug("   body: \(text.prefix(500), privacy: .public)")
+            logger.debug("[req] body: \(text.prefix(500), privacy: .public)")
         }
         #endif
     }
 
     private func logResponse(_ response: HTTPURLResponse, data: Data, url: URL?) {
         #if DEBUG
-        logger.debug("⬅️ \(response.statusCode, privacy: .public) \(url?.absoluteString ?? "?", privacy: .public)")
+        logger.debug("[res] \(response.statusCode, privacy: .public) \(url?.absoluteString ?? "?", privacy: .public)")
         if let text = String(data: data, encoding: .utf8), !text.isEmpty {
-            logger.debug("   resp: \(text.prefix(500), privacy: .public)")
+            logger.debug("[res] body: \(text.prefix(500), privacy: .public)")
         }
         #endif
     }
