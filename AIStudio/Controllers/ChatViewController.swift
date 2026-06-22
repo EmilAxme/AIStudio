@@ -21,6 +21,13 @@ final class ChatViewController: UIViewController {
     private var lastUserText: String?
     private var replyTask: Task<Void, Never>?
 
+    /// How many `messages` are already materialized in `messagesStack`. The list
+    /// only grows by appends, so we add the delta instead of rebuilding the stack
+    /// (a full teardown made every bubble re-inflate from the corner on each send).
+    private var renderedMessageCount = 0
+    /// The trailing typing/error bubble, if shown (replaced in place, not stacked).
+    private weak var statusView: UIView?
+
     init(startEmpty: Bool = false, chatService: ChatServicing = AppServices.chat) {
         self.chatService = chatService
         messages = startEmpty ? [] : ChatViewController.seedMessages
@@ -191,29 +198,55 @@ final class ChatViewController: UIViewController {
         let hasContent = !messages.isEmpty || isAwaiting || errorText != nil
         emptyStateView.isHidden = hasContent
         scrollView.isHidden = !hasContent
-        messagesStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        messages.forEach { message in
-            switch message.sender {
-            case .user:
-                let content = ChatBubbleView(text: message.text)
-                messagesStack.addArrangedSubview(userAligned(content))
-            case .assistant:
-                let content = AssistantMessageView(title: message.title, text: message.text)
-                messagesStack.addArrangedSubview(assistantAligned(content))
-            }
+
+        // Drop the trailing typing/error bubble so any new messages append in order.
+        statusView?.removeFromSuperview()
+        statusView = nil
+
+        // Append only the messages not yet on screen; existing bubbles stay put.
+        while renderedMessageCount < messages.count {
+            let bubble = messageBubble(for: messages[renderedMessageCount])
+            messagesStack.addArrangedSubview(bubble)
+            if animated { animateInsertion(of: bubble) }
+            renderedMessageCount += 1
         }
+
+        // Re-attach the trailing status bubble (typing while loading, error on failure).
         if isAwaiting {
-            messagesStack.addArrangedSubview(assistantAligned(TypingIndicatorView()))
-        }
-        if let errorText {
+            let typing = assistantAligned(TypingIndicatorView())
+            messagesStack.addArrangedSubview(typing)
+            statusView = typing
+            if animated { animateInsertion(of: typing) }
+        } else if let errorText {
             let bubble = ChatErrorBubbleView(message: errorText)
             bubble.onRetry = { [weak self] in self?.retryLastMessage() }
-            messagesStack.addArrangedSubview(assistantAligned(bubble))
+            let wrapped = assistantAligned(bubble)
+            messagesStack.addArrangedSubview(wrapped)
+            statusView = wrapped
+            if animated { animateInsertion(of: wrapped) }
         }
-        if animated {
-            UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+
+        scrollToBottom(animated: animated)
+    }
+
+    private func messageBubble(for message: ChatMessage) -> UIView {
+        switch message.sender {
+        case .user:
+            return userAligned(ChatBubbleView(text: message.text))
+        case .assistant:
+            return assistantAligned(AssistantMessageView(title: message.title, text: message.text))
         }
-        DispatchQueue.main.async { [weak self] in self?.scrollToBottom() }
+    }
+
+    /// Fades and slides in only the newly inserted bubble; the rest of the
+    /// conversation is left untouched (no full-stack relayout).
+    private func animateInsertion(of bubble: UIView) {
+        bubble.alpha = 0
+        bubble.transform = CGAffineTransform(translationX: 0, y: 10)
+        UIView.animate(withDuration: 0.28, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
+            bubble.alpha = 1
+            bubble.transform = .identity
+        }
     }
 
     /// User bubble: hugs the trailing edge, leaving a gap on the left.
@@ -283,9 +316,14 @@ final class ChatViewController: UIViewController {
         }
     }
 
-    private func scrollToBottom() {
-        let offset = max(-scrollView.adjustedContentInset.top, scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom)
-        scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
+    private func scrollToBottom(animated: Bool) {
+        // Defer so the just-added bubble is laid out and contentSize is current.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.scrollView.layoutIfNeeded()
+            let offset = max(-self.scrollView.adjustedContentInset.top, self.scrollView.contentSize.height - self.scrollView.bounds.height + self.scrollView.adjustedContentInset.bottom)
+            self.scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: animated)
+        }
     }
 
     @objc private func showHistory() {
