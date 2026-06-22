@@ -185,18 +185,22 @@ final class VideoResultViewController: UIViewController {
     /// then surfaces the result URL. Cancellable; drives the loading/error states.
     private func generate() {
         generationTask?.cancel()
+        downloadTask?.cancel()   // a Replace/retry invalidates any in-flight save
         resultURL = nil
         state = .loading
 
-        let parameters = VideoGenerationParameters(
-            prompt: request.prompt,
-            imageData: request.images.first?.jpegData(compressionQuality: 0.9),
-            aspectRatio: request.aspectRatio,
-            quality: request.quality
-        )
+        let image = request.images.first
+        let prompt = request.prompt
+        let aspectRatio = request.aspectRatio
+        let quality = request.quality
 
         generationTask = Task { [weak self] in
             guard let self else { return }
+            // JPEG-encode the source photo off the main actor.
+            let imageData = await Task.detached { image?.jpegData(compressionQuality: 0.9) }.value
+            let parameters = VideoGenerationParameters(
+                prompt: prompt, imageData: imageData, aspectRatio: aspectRatio, quality: quality
+            )
             do {
                 let url = try await self.videoService.generate(parameters)
                 try Task.checkCancellation()
@@ -283,14 +287,14 @@ final class VideoResultViewController: UIViewController {
         present(sheet, animated: true)
     }
 
-    /// Downloads the generated video and saves it to the photo library.
+    /// Downloads the generated video and saves it to the photo library. The
+    /// download, file write and photo-library save all run off the main actor.
     private func saveResultToGallery() {
         guard let url = resultURL else { return }
-        let downloadButton = self.downloadButton
         downloadButton.setLoading(true)
         downloadTask?.cancel()
-        downloadTask = Task { [weak self] in
-            defer { Task { @MainActor in downloadButton.setLoading(false) } }
+        downloadTask = Task.detached { [weak self] in
+            let success: Bool
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 try Task.checkCancellation()
@@ -301,13 +305,26 @@ final class VideoResultViewController: UIViewController {
                     throw VideoGenerationError.noResultURL
                 }
                 UISaveVideoAtPathToSavedPhotosAlbum(temp.path, nil, nil, nil)
-                await self?.presentSavedAlert(success: true)
+                success = true
             } catch is CancellationError {
+                await self?.setDownloadLoading(false)
                 return
             } catch {
-                await self?.presentSavedAlert(success: false)
+                success = false
             }
+            await self?.finishSave(success: success)
         }
+    }
+
+    @MainActor
+    private func setDownloadLoading(_ loading: Bool) {
+        downloadButton.setLoading(loading)
+    }
+
+    @MainActor
+    private func finishSave(success: Bool) {
+        downloadButton.setLoading(false)
+        presentSavedAlert(success: success)
     }
 
     @MainActor
