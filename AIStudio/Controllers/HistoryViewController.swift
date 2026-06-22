@@ -157,7 +157,11 @@ final class HistoryViewController: UIViewController {
     }
 
     private func setupEmptyState() {
-        let icon = GradientIconView(symbol: emptyIcon, pointSize: 44, weight: .regular)
+        let icon = UIImageView(image: UIImage(named: emptyIcon))
+        icon.contentMode = .scaleAspectFit
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.widthAnchor.constraint(equalToConstant: 96).isActive = true
+        icon.heightAnchor.constraint(equalToConstant: 96).isActive = true
         let title = UILabel()
         title.text = emptyTitle
         title.font = AppFont.semibold(18)
@@ -220,7 +224,7 @@ final class HistoryViewController: UIViewController {
         let vc = HistoryViewController(
             title: "AI Chat History",
             sections: empty ? [] : buildSections(from: store.sessions()),
-            emptyIcon: "bubble.left.and.bubble.right",
+            emptyIcon: "emptyChats",
             emptyTitle: "No chats yet",
             emptySubtitle: "Your conversations will appear here"
         )
@@ -239,7 +243,7 @@ final class HistoryViewController: UIViewController {
             title: "AI Video History",
             sections: [],
             gridImages: items.isEmpty ? nil : posters,
-            emptyIcon: "play.rectangle",
+            emptyIcon: "emptyVideos",
             emptyTitle: "No videos yet",
             emptySubtitle: "Your generated videos will appear here"
         )
