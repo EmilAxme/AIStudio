@@ -115,7 +115,7 @@ final class ChatViewController: UIViewController {
         ])
 
         let title = UILabel()
-        title.text = "AI Chat"
+        title.text = "AI Chat".localized
         title.font = AppFont.font(17, .semibold)
         title.textColor = .white
         let date = UILabel()
@@ -351,11 +351,11 @@ final class ChatViewController: UIViewController {
     }()
 
     private static let seedMessages: [ChatMessage] = [
-        ChatMessage(sender: .user, text: "Can you help me rewrite a sentence to sound clearer?"),
+        ChatMessage(sender: .user, text: "Can you help me rewrite a sentence to sound clearer?".localized),
         ChatMessage(
             sender: .assistant,
-            text: "Send me the sentence and I'll suggest a clearer version. You can also tell me the tone you want, for example formal or friendly.",
-            title: "Sure"
+            text: "Send me the sentence and I'll suggest a clearer version. You can also tell me the tone you want, for example formal or friendly.".localized,
+            title: "Sure".localized
         )
     ]
 }

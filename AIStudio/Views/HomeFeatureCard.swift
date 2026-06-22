@@ -83,7 +83,7 @@ final class HomeFeatureCard: UIControl {
         if isFeatured {
             actionPill.backgroundColor = UIColor.white.withAlphaComponent(0.26)
             actionPill.layer.cornerRadius = 17
-            actionLabel.text = "Ready in seconds"
+            actionLabel.text = "Ready in seconds".localized
             actionLabel.font = AppFont.font(12, .medium)
             actionLabel.textColor = .white
             let playCircle = UIView()

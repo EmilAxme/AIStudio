@@ -4,9 +4,9 @@ import ApphudSDK
 
 final class PaywallViewController: UIViewController {
     private let topGlow = GlowView(tint: UIColor(hex: 0x5A3A66), intensity: 0.55)
-    private let yearly = PlanOptionView(placeholderTitle: "Year")
-    private let monthly = PlanOptionView(placeholderTitle: "Month")
-    private let unlock = GradientButton(title: "Unlock now")
+    private let yearly = PlanOptionView(placeholderTitle: "Year".localized)
+    private let monthly = PlanOptionView(placeholderTitle: "Month".localized)
+    private let unlock = GradientButton(title: "Unlock now".localized)
     private let restoreLabel = UILabel()
     private var selectedPlanView: PlanOptionView
 
@@ -64,7 +64,7 @@ final class PaywallViewController: UIViewController {
         close.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
 
         let title = UILabel()
-        title.text = "Create anything\nyou want"
+        title.text = "Create anything\nyou want".localized
         title.textColor = .white
         title.font = AppFont.font(34, .bold)
         title.numberOfLines = 2
@@ -74,10 +74,10 @@ final class PaywallViewController: UIViewController {
         benefits.axis = .vertical
         benefits.spacing = 14
         let rows: [(GradientIconView, String)] = [
-            (GradientIconView(imageName: "icGenerate"), "Get results in seconds"),
-            (GradientIconView(imageName: "icMagicPencil"), "Turn any text into better writing"),
-            (GradientIconView(imageName: "icPrompt"), "Simplify complex information"),
-            (GradientIconView(imageName: "icImageToImage"), "Create content with AI templates")
+            (GradientIconView(imageName: "icGenerate"), "Get results in seconds".localized),
+            (GradientIconView(imageName: "icMagicPencil"), "Turn any text into better writing".localized),
+            (GradientIconView(imageName: "icPrompt"), "Simplify complex information".localized),
+            (GradientIconView(imageName: "icImageToImage"), "Create content with AI templates".localized)
         ]
         rows.forEach { benefits.addArrangedSubview(benefitRow(iconView: $0.0, text: $0.1)) }
 
@@ -86,7 +86,7 @@ final class PaywallViewController: UIViewController {
         cancelIcon.contentMode = .scaleAspectFit
         cancelIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
         let cancelLabel = UILabel()
-        cancelLabel.text = "Cancel Anytime"
+        cancelLabel.text = "Cancel Anytime".localized
         cancelLabel.textColor = AppColor.mutedText
         cancelLabel.font = AppFont.font(13, .regular)
         let cancel = UIStackView(arrangedSubviews: [cancelIcon, cancelLabel])
@@ -96,13 +96,13 @@ final class PaywallViewController: UIViewController {
         let footer = UIStackView()
         footer.axis = .horizontal
         footer.distribution = .equalCentering
-        let footerItems = ["Privacy Policy", "Restore Purchases", "Terms of Use"]
+        let footerItems = ["Privacy Policy".localized, "Restore Purchases".localized, "Terms of Use".localized]
         for text in footerItems {
             let label = UILabel()
             label.text = text
             label.textColor = AppColor.mutedText
             label.font = AppFont.font(11, .regular)
-            if text == "Restore Purchases" {
+            if text == "Restore Purchases".localized {
                 label.isUserInteractionEnabled = true
                 label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(restoreTapped)))
                 restoreLabel.text = text
@@ -209,8 +209,8 @@ final class PaywallViewController: UIViewController {
             resolvedMonthly = products.count > 1 ? products[1] : nil
         }
 
-        configureRow(yearly, with: resolvedYearly, fallbackName: "Year")
-        configureRow(monthly, with: resolvedMonthly, fallbackName: "Month")
+        configureRow(yearly, with: resolvedYearly, fallbackName: "Year".localized)
+        configureRow(monthly, with: resolvedMonthly, fallbackName: "Month".localized)
 
         yearly.setSaveBadge(percent: Self.savingsPercent(cheaper: resolvedYearly, baseline: resolvedMonthly))
 
@@ -239,33 +239,33 @@ final class PaywallViewController: UIViewController {
 
     private func planName(for product: ApphudProduct, fallback: String) -> String {
         switch product.skProduct?.subscriptionPeriod?.unit {
-        case .year: return "Year"
-        case .month: return "Month"
-        case .week: return "Week"
-        case .day: return "Day"
+        case .year: return "Year".localized
+        case .month: return "Month".localized
+        case .week: return "Week".localized
+        case .day: return "Day".localized
         default: return fallback
         }
     }
 
     private func presentLoadFailure() {
         let alert = UIAlertController(
-            title: "Couldn't load",
-            message: "Couldn't reach the store. Check your connection and try again.",
+            title: "Couldn't load".localized,
+            message: "Couldn't reach the store. Check your connection and try again.".localized,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in self?.loadProducts() })
-        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Retry".localized, style: .default) { [weak self] _ in self?.loadProducts() })
+        alert.addAction(UIAlertAction(title: "Close".localized, style: .cancel))
         present(alert, animated: true)
     }
 
     private func presentProductsUnavailable() {
         let alert = UIAlertController(
-            title: "Subscriptions unavailable",
-            message: "Subscription options aren't available right now. Please try again later.",
+            title: "Subscriptions unavailable".localized,
+            message: "Subscription options aren't available right now. Please try again later.".localized,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in self?.loadProducts() })
-        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Retry".localized, style: .default) { [weak self] _ in self?.loadProducts() })
+        alert.addAction(UIAlertAction(title: "Close".localized, style: .cancel))
         present(alert, animated: true)
     }
 
@@ -326,19 +326,19 @@ final class PaywallViewController: UIViewController {
 
     private func presentPurchasePending() {
         let alert = UIAlertController(
-            title: "Purchase pending approval",
-            message: "Your purchase is waiting for approval. It will unlock automatically once approved.",
+            title: "Purchase pending approval".localized,
+            message: "Your purchase is waiting for approval. It will unlock automatically once approved.".localized,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK".localized, style: .default))
         present(alert, animated: true)
     }
 
     private func presentError(_ error: Error) {
         guard !Self.isUserCancelled(error) else { return }
         let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-        let alert = UIAlertController(title: "Purchase not completed", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        let alert = UIAlertController(title: "Purchase not completed".localized, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK".localized, style: .default))
         present(alert, animated: true)
     }
 
@@ -350,11 +350,11 @@ final class PaywallViewController: UIViewController {
 
     private func presentNothingToRestore() {
         let alert = UIAlertController(
-            title: "Nothing to restore",
-            message: "We couldn't find any active subscriptions to restore.",
+            title: "Nothing to restore".localized,
+            message: "We couldn't find any active subscriptions to restore.".localized,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK".localized, style: .default))
         present(alert, animated: true)
     }
 

@@ -26,6 +26,13 @@
 	<string>AIStudio saves your generated videos to your photo gallery.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>AIStudio needs access to your photo gallery so you can upload an image to generate a video.</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>es</string>
+		<string>zh-Hans</string>
+		<string>ru</string>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter-Regular.ttf</string>

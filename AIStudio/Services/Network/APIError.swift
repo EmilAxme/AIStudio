@@ -12,20 +12,20 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidRequest:
-            return "Couldn't build the request. Please try again."
+            return "Couldn't build the request. Please try again.".localized
         case .invalidResponse:
-            return "The server returned an invalid response."
+            return "The server returned an invalid response.".localized
         case .unauthorized:
-            return "Access denied. Please check authorization."
+            return "Access denied. Please check authorization.".localized
         case .server(let status, let message):
             if let message, !message.isEmpty {
                 return message
             }
-            return "Server error (code \(status)). Please try again."
+            return String(format: "Server error (code %d). Please try again.".localized, status)
         case .decoding:
-            return "Couldn't process the server response."
+            return "Couldn't process the server response.".localized
         case .transport:
-            return "No connection to the server. Check your internet and try again."
+            return "No connection to the server. Check your internet and try again.".localized
         }
     }
 }

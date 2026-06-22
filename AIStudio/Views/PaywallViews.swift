@@ -72,9 +72,9 @@ final class PlanOptionView: UIControl {
 
     func configure(product: ApphudProduct, planName: String) {
         self.product = product
-        let trial = product.hasFreeTrial ? " · Free trial" : ""
+        let trial = product.hasFreeTrial ? " · Free trial".localized : ""
         if let weekly = product.weeklyPriceString {
-            titleLabel.text = "\(planName)  \(weekly) / week\(trial)"
+            titleLabel.text = "\(planName)  \(weekly) \("/ week".localized)\(trial)"
         } else {
             titleLabel.text = "\(planName)\(trial)"
         }
@@ -83,7 +83,7 @@ final class PlanOptionView: UIControl {
 
     func setSaveBadge(percent: Int?) {
         if let percent, percent > 0 {
-            badgeLabel.text = "SAVE \(percent)%"
+            badgeLabel.text = String(format: "SAVE %d%%".localized, percent)
             badge.isHidden = false
         } else {
             badge.isHidden = true

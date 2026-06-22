@@ -58,7 +58,7 @@ final class VideoGalleryViewController: UIViewController {
         avatar.addSubview(avatarIcon)
 
         let title = UILabel()
-        title.text = "AI Video"
+        title.text = "AI Video".localized
         title.textColor = .white
         title.font = AppFont.font(17, .semibold)
         let titleStack = UIStackView(arrangedSubviews: [avatar, title])

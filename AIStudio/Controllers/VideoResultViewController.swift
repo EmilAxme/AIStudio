@@ -18,7 +18,7 @@ final class VideoResultViewController: UIViewController {
 
     private let resultImageView = UIImageView()
     private let shareButton = UIButton(type: .system)
-    private let downloadButton = GradientButton(title: "Download")
+    private let downloadButton = GradientButton(title: "Download".localized)
     private let actionsStack = UIStackView()
 
     private let orb = UIImageView(image: UIImage(named: "videoGenOrb"))
@@ -56,7 +56,7 @@ final class VideoResultViewController: UIViewController {
     // MARK: - Setup
 
     private func setupView() {
-        let header = ScreenHeaderView(title: "Result") { [weak self] in
+        let header = ScreenHeaderView(title: "Result".localized) { [weak self] in
             self?.navigationController?.popViewController(animated: true)
         }
         header.translatesAutoresizingMaskIntoConstraints = false
@@ -89,7 +89,7 @@ final class VideoResultViewController: UIViewController {
         replaceIcon.tintColor = .white
         replaceIcon.contentMode = .scaleAspectFit
         let replaceLabel = UILabel()
-        replaceLabel.text = "Replace"
+        replaceLabel.text = "Replace".localized
         replaceLabel.textColor = .white
         replaceLabel.font = AppFont.medium(14)
         let replaceStack = UIStackView(arrangedSubviews: [replaceIcon, replaceLabel])
@@ -118,7 +118,7 @@ final class VideoResultViewController: UIViewController {
             replaceStack.centerYAnchor.constraint(equalTo: replace.centerYAnchor)
         ])
 
-        shareButton.setTitle("Share", for: .normal)
+        shareButton.setTitle("Share".localized, for: .normal)
         shareButton.titleLabel?.font = AppFont.semibold(17)
         shareButton.setTitleColor(.white, for: .normal)
         shareButton.backgroundColor = AppColor.surface
@@ -272,11 +272,11 @@ final class VideoResultViewController: UIViewController {
         teardownPlayer()
         let message = (error as? LocalizedError)?.errorDescription
             ?? error?.localizedDescription
-            ?? "This video can't be played right now."
+            ?? "This video can't be played right now.".localized
         let showAlert = { [weak self] in
             guard let self else { return }
-            let alert = UIAlertController(title: "Can't play video", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            let alert = UIAlertController(title: "Can't play video".localized, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK".localized, style: .default))
             self.present(alert, animated: true)
         }
         if let controller = playerController, controller.presentingViewController != nil {
@@ -310,9 +310,9 @@ final class VideoResultViewController: UIViewController {
             loadingStack.isHidden = false
             resultImageView.isHidden = true
             actionsStack.isHidden = true
-            statusTitle.text = "Generating..."
+            statusTitle.text = "Generating...".localized
             statusTitle.textColor = .white
-            statusSubtitle.text = "We're creating the best result for you"
+            statusSubtitle.text = "We're creating the best result for you".localized
             startOrbPulse()
         case .success:
             loadingStack.isHidden = true
@@ -323,7 +323,7 @@ final class VideoResultViewController: UIViewController {
             resultImageView.isHidden = true
             actionsStack.isHidden = true
             orb.layer.removeAllAnimations()
-            statusTitle.text = "Something went wrong"
+            statusTitle.text = "Something went wrong".localized
             statusSubtitle.text = message
             addRetryIfNeeded()
         }
@@ -331,7 +331,7 @@ final class VideoResultViewController: UIViewController {
 
     private func addRetryIfNeeded() {
         guard loadingStack.arrangedSubviews.count == 3 else { return }
-        let retry = GradientButton(title: "Try again")
+        let retry = GradientButton(title: "Try again".localized)
         retry.translatesAutoresizingMaskIntoConstraints = false
         retry.heightAnchor.constraint(equalToConstant: 50).isActive = true
         retry.widthAnchor.constraint(equalToConstant: 200).isActive = true
@@ -409,13 +409,13 @@ final class VideoResultViewController: UIViewController {
     @MainActor
     private func presentSavedAlert(success: Bool, message: String?) {
         let alert = UIAlertController(
-            title: success ? "Saved" : "Couldn't save",
+            title: success ? "Saved".localized : "Couldn't save".localized,
             message: success
-                ? "The video has been saved to your gallery."
-                : (message ?? "Couldn't save the video. Please try again."),
+                ? "The video has been saved to your gallery.".localized
+                : (message ?? "Couldn't save the video. Please try again.".localized),
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK".localized, style: .default))
         present(alert, animated: true)
     }
 }
@@ -426,7 +426,7 @@ private enum VideoSaveError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .accessDenied:
-            return "Allow photo access in Settings to save videos to your gallery."
+            return "Allow photo access in Settings to save videos to your gallery.".localized
         }
     }
 }

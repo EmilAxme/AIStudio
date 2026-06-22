@@ -9,6 +9,6 @@ struct ChatSession: Codable, Identifiable {
     var updatedAt: Date
 
     var title: String {
-        messages.first(where: { $0.sender == .user })?.text ?? "New chat"
+        messages.first(where: { $0.sender == .user })?.text ?? "New chat".localized
     }
 }

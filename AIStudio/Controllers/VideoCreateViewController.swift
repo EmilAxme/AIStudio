@@ -19,9 +19,9 @@ final class VideoCreateViewController: UIViewController {
 
     private let titleLabel = UILabel()
     private let tilesStack = UIStackView()
-    private let format = FormOptionView(title: "Format", value: "16:9")
-    private let quality = FormOptionView(title: "Quality", value: "1080p")
-    private let createButton = GradientButton(title: "Create")
+    private let format = FormOptionView(title: "Format".localized, value: "16:9")
+    private let quality = FormOptionView(title: "Quality".localized, value: "1080p")
+    private let createButton = GradientButton(title: "Create".localized)
 
     private var selectedImages: [UIImage?] = []
     private var pendingTileIndex = 0
@@ -203,12 +203,12 @@ final class VideoCreateViewController: UIViewController {
 
     private func presentAccessAlert() {
         let alert = UIAlertController(
-            title: "Allow access to photos?",
-            message: "To upload an image, the app needs access to your photo gallery.",
+            title: "Allow access to photos?".localized,
+            message: "To upload an image, the app needs access to your photo gallery.".localized,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Allow", style: .default) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel))
+        alert.addAction(UIAlertAction(title: "Allow".localized, style: .default) { [weak self] _ in
             guard let self else { return }
             self.hasGrantedAccess = true
             PHPhotoLibrary.requestAuthorization(for: .readWrite) { _ in
