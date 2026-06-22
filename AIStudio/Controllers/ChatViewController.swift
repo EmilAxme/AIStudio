@@ -131,7 +131,7 @@ final class ChatViewController: UIViewController {
         title.font = AppFont.font(17, .semibold)
         title.textColor = .white
         let date = UILabel()
-        date.text = "26.03.2026"
+        date.text = Self.headerDateFormatter.string(from: createdAt)
         date.font = AppFont.font(12, .regular)
         date.textColor = AppColor.secondaryText
         let textStack = UIStackView(arrangedSubviews: [title, date])
@@ -367,6 +367,13 @@ final class ChatViewController: UIViewController {
     }
 
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
+
+    private static let headerDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.dateFormat = "dd.MM.yyyy"
+        return formatter
+    }()
 
     private static let seedMessages: [ChatMessage] = [
         ChatMessage(sender: .user, text: "Can you help me rewrite a sentence to sound clearer?"),
