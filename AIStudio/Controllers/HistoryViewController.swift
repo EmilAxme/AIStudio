@@ -10,6 +10,9 @@ final class HistoryViewController: UIViewController {
     private let emptyTitle: String
     private let emptySubtitle: String
 
+    /// Invoked when a list row is tapped (chat history uses it to reopen a chat).
+    var onSelectItem: ((HistoryItem) -> Void)?
+
     init(title: String, sections: [HistorySection], gridImageNames: [String]? = nil, emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
         self.navTitle = title
         self.sections = sections
@@ -121,7 +124,11 @@ final class HistoryViewController: UIViewController {
             let rows = UIStackView()
             rows.axis = .vertical
             rows.spacing = 12
-            section.items.forEach { rows.addArrangedSubview(HistoryRowView(item: $0)) }
+            section.items.forEach { item in
+                let row = HistoryRowView(item: item)
+                row.addAction(UIAction { [weak self] _ in self?.onSelectItem?(item) }, for: .touchUpInside)
+                rows.addArrangedSubview(row)
+            }
             sectionStack.addArrangedSubview(rows)
 
             stack.addArrangedSubview(sectionStack)
@@ -170,32 +177,51 @@ final class HistoryViewController: UIViewController {
 
     // MARK: - Factories
 
-    private static var mockSections: [HistorySection] {
-        func row(_ title: String, _ time: String) -> HistoryItem { HistoryItem(title: title, time: time) }
-        return [
-            HistorySection(title: "Today", items: [
-                row("Rewrite a paragraph to sound clearer", "9:41 AM"),
-                row("Summarize an article", "8:15 AM")
-            ]),
-            HistorySection(title: "Yesterday", items: [
-                row("Fix grammar in an email", "6:02 PM"),
-                row("Explain a concept simply", "1:20 PM")
-            ]),
-            HistorySection(title: "March 4", items: [
-                row("Draft a short message", "11:30 AM"),
-                row("Translate a sentence", "10:05 AM")
-            ])
-        ]
+    /// Groups saved chat sessions into dated sections (Today / Yesterday / date).
+    private static func buildSections(from sessions: [ChatSession]) -> [HistorySection] {
+        guard !sessions.isEmpty else { return [] }
+        let calendar = Calendar.current
+        let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale(identifier: "en_US")
+        timeFormatter.dateFormat = "h:mm a"
+        let dayFormatter = DateFormatter()
+        dayFormatter.locale = Locale(identifier: "en_US")
+        dayFormatter.dateFormat = "MMMM d"
+
+        func bucket(for date: Date) -> String {
+            if calendar.isDateInToday(date) { return "Today" }
+            if calendar.isDateInYesterday(date) { return "Yesterday" }
+            return dayFormatter.string(from: date)
+        }
+
+        var order: [String] = []
+        var grouped: [String: [HistoryItem]] = [:]
+        for session in sessions {   // already sorted newest-first by the store
+            let key = bucket(for: session.updatedAt)
+            if grouped[key] == nil { order.append(key) }
+            grouped[key, default: []].append(HistoryItem(
+                id: session.id,
+                title: session.title,
+                time: timeFormatter.string(from: session.updatedAt)
+            ))
+        }
+        return order.map { HistorySection(title: $0, items: grouped[$0] ?? []) }
     }
 
     static func chat(empty: Bool = false) -> HistoryViewController {
-        HistoryViewController(
+        let store = AppServices.chatHistory
+        let vc = HistoryViewController(
             title: "AI Chat History",
-            sections: empty ? [] : mockSections,
+            sections: empty ? [] : buildSections(from: store.sessions()),
             emptyIcon: "bubble.left.and.bubble.right",
             emptyTitle: "No chats yet",
             emptySubtitle: "Your conversations will appear here"
         )
+        vc.onSelectItem = { [weak vc] item in
+            guard let session = store.session(id: item.id) else { return }
+            vc?.navigationController?.pushViewController(ChatViewController(session: session), animated: true)
+        }
+        return vc
     }
 
     private static let mockVideoThumbnails = [

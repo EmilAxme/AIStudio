@@ -9,6 +9,12 @@ final class ChatViewController: UIViewController {
     private var messages: [ChatMessage]
 
     private let chatService: ChatServicing
+    private let history: ChatHistoryStore
+    /// Stable id + creation time for this conversation's saved history entry.
+    private let sessionID: UUID
+    private let createdAt: Date
+    /// Only persist to history once the user has actually sent a message here.
+    private var userDidSend = false
     /// Client-generated chat id; the backend creates the chat on first send and
     /// echoes it back, so the whole conversation reuses this id.
     private var chatID = UUID().uuidString
@@ -28,9 +34,24 @@ final class ChatViewController: UIViewController {
     /// The trailing typing/error bubble, if shown (replaced in place, not stacked).
     private weak var statusView: UIView?
 
-    init(startEmpty: Bool = false, chatService: ChatServicing = AppServices.chat) {
+    init(startEmpty: Bool = false, chatService: ChatServicing = AppServices.chat, history: ChatHistoryStore = AppServices.chatHistory) {
         self.chatService = chatService
+        self.history = history
+        self.sessionID = UUID()
+        self.createdAt = Date()
         messages = startEmpty ? [] : ChatViewController.seedMessages
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    /// Reopens a saved conversation from the history list.
+    init(session: ChatSession, chatService: ChatServicing = AppServices.chat, history: ChatHistoryStore = AppServices.chatHistory) {
+        self.chatService = chatService
+        self.history = history
+        self.sessionID = session.id
+        self.createdAt = session.createdAt
+        self.chatID = session.chatID
+        self.userDidSend = true
+        messages = session.messages
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -278,9 +299,23 @@ final class ChatViewController: UIViewController {
     }
 
     private func send(text: String) {
+        userDidSend = true
         messages.append(ChatMessage(sender: .user, text: text))
         lastUserText = text
+        persistSession()
         requestReply(for: text)
+    }
+
+    /// Saves this conversation to history (once the user has contributed).
+    private func persistSession() {
+        guard userDidSend else { return }
+        history.save(ChatSession(
+            id: sessionID,
+            chatID: chatID,
+            messages: messages,
+            createdAt: createdAt,
+            updatedAt: Date()
+        ))
     }
 
     private func retryLastMessage() {
@@ -304,6 +339,7 @@ final class ChatViewController: UIViewController {
                     self.replyState = .idle
                     self.messages.append(ChatMessage(sender: .assistant, text: reply.assistantMessage))
                     self.renderMessages(animated: true)
+                    self.persistSession()
                 }
             } catch is CancellationError {
                 return

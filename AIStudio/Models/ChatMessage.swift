@@ -1,11 +1,11 @@
 import Foundation
 
-enum ChatMessageSender {
+enum ChatMessageSender: String, Codable {
     case user
     case assistant
 }
 
-struct ChatMessage: Identifiable {
+struct ChatMessage: Identifiable, Codable {
     let id: UUID
     let sender: ChatMessageSender
     let text: String
