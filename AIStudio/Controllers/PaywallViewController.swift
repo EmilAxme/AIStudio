@@ -1,4 +1,5 @@
 import UIKit
+import StoreKit
 import ApphudSDK
 
 final class PaywallViewController: UIViewController {
@@ -312,7 +313,10 @@ final class PaywallViewController: UIViewController {
                 self.unlock.setLoading(false)
                 switch result {
                 case .success(let unlocked):
-                    if unlocked { self.handleUnlocked() }
+                    // unlocked == false with no error means a deferred / Ask-to-Buy
+                    // purchase that needs approval; it will unlock live via the
+                    // statusDidChange observer once approved.
+                    unlocked ? self.handleUnlocked() : self.presentPurchasePending()
                 case .failure(let error):
                     self.presentError(error)
                 }
@@ -347,11 +351,30 @@ final class PaywallViewController: UIViewController {
         dismiss(animated: true) { completion?() }
     }
 
+    /// A deferred / Ask-to-Buy purchase succeeded without an error but isn't active
+    /// yet — tell the user it's awaiting approval rather than leaving a silent no-op.
+    private func presentPurchasePending() {
+        let alert = UIAlertController(
+            title: "Purchase pending approval",
+            message: "Your purchase is waiting for approval. It will unlock automatically once approved.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
     private func presentError(_ error: Error) {
+        guard !Self.isUserCancelled(error) else { return }   // user backed out; no alert
         let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         let alert = UIAlertController(title: "Purchase not completed", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+
+    private static func isUserCancelled(_ error: Error) -> Bool {
+        if let skError = error as? SKError, skError.code == .paymentCancelled { return true }
+        if let storeKitError = error as? StoreKitError, case .userCancelled = storeKitError { return true }
+        return false
     }
 
     private func presentNothingToRestore() {

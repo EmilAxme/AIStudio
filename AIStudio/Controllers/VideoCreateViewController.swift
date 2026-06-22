@@ -25,6 +25,9 @@ final class VideoCreateViewController: UIViewController {
     private var selectedImages: [UIImage?] = []
     private var pendingTileIndex = 0
     private var hasGrantedAccess = false
+    /// Set when Create opened the paywall; lets a deferred/Ask-to-Buy purchase
+    /// approved after the paywall was dismissed resume on return to this screen.
+    private var pendingGatedCreate = false
 
     private let subscription: SubscriptionServicing
 
@@ -74,6 +77,11 @@ final class VideoCreateViewController: UIViewController {
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        resumePendingCreateIfUnlocked()
+    }
 
     #if DEBUG
     override func viewDidAppear(_ animated: Bool) {
@@ -261,9 +269,19 @@ final class VideoCreateViewController: UIViewController {
         // Premium gate: generation is locked behind a subscription. Without one we
         // present the paywall and only proceed once the user unlocks (no relaunch).
         guard subscription.isPremium else {
-            presentPaywall { [weak self] in self?.proceedToResult() }
+            pendingGatedCreate = true
+            presentPaywall { [weak self] in self?.resumePendingCreateIfUnlocked() }
             return
         }
+        proceedToResult()
+    }
+
+    /// Resumes a create that was gated by the paywall, once premium is active and
+    /// the paywall is gone. Covers an Ask-to-Buy/deferred purchase approved after
+    /// the paywall was dismissed: returning here proceeds without another tap.
+    private func resumePendingCreateIfUnlocked() {
+        guard pendingGatedCreate, subscription.isPremium, presentedViewController == nil else { return }
+        pendingGatedCreate = false
         proceedToResult()
     }
 
