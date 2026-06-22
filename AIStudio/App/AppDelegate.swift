@@ -9,6 +9,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        #if DEBUG
+        Apphud.enableDebugLogs()
+        #endif
         Apphud.start(apiKey: AppConfig.Apphud.apiKey)
         Apphud.setDelegate(AppServices.subscription)
         AppServices.userIdentifier.refresh()
