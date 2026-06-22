@@ -73,34 +73,23 @@ final class AssistantMessageView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
-/// Loading state for an in-flight assistant reply: three pulsing dots inside an
-/// assistant-styled bubble, matching `AssistantMessageView`'s surface.
+/// Loading state for an in-flight assistant reply — the Figma "AI's response"
+/// bubble (gradient lead dot + two grey dots), shown left-aligned at its natural
+/// size with a soft pulse to read as active.
 final class TypingIndicatorView: UIView {
-    private let dots = [UIView(), UIView(), UIView()]
+    private let imageView = UIImageView(image: UIImage(named: "typingIndicator"))
 
     init() {
         super.init(frame: .zero)
-        backgroundColor = AppColor.bubble
-        layer.cornerRadius = Layout.cardRadius
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.spacing = 6
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        dots.forEach { dot in
-            dot.backgroundColor = UIColor.white.withAlphaComponent(0.6)
-            dot.layer.cornerRadius = 4
-            dot.translatesAutoresizingMaskIntoConstraints = false
-            dot.widthAnchor.constraint(equalToConstant: 8).isActive = true
-            dot.heightAnchor.constraint(equalToConstant: 8).isActive = true
-            stack.addArrangedSubview(dot)
-        }
-        addSubview(stack)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        addSubview(imageView)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
-            stack.topAnchor.constraint(equalTo: topAnchor, constant: 18),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -18)
+            imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            imageView.topAnchor.constraint(equalTo: topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            imageView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor)
         ])
     }
 
@@ -112,20 +101,17 @@ final class TypingIndicatorView: UIView {
     }
 
     private func startAnimating() {
-        for (index, dot) in dots.enumerated() {
-            let pulse = CABasicAnimation(keyPath: "opacity")
-            pulse.fromValue = 0.3
-            pulse.toValue = 1.0
-            pulse.duration = 0.6
-            pulse.beginTime = CACurrentMediaTime() + Double(index) * 0.2
-            pulse.autoreverses = true
-            pulse.repeatCount = .infinity
-            dot.layer.add(pulse, forKey: "pulse")
-        }
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 0.55
+        pulse.toValue = 1.0
+        pulse.duration = 0.7
+        pulse.autoreverses = true
+        pulse.repeatCount = .infinity
+        imageView.layer.add(pulse, forKey: "pulse")
     }
 
     private func stopAnimating() {
-        dots.forEach { $0.layer.removeAllAnimations() }
+        imageView.layer.removeAllAnimations()
     }
 }
 
