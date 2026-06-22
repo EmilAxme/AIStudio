@@ -126,7 +126,7 @@ final class ChatErrorBubbleView: UIControl {
         layer.cornerRadius = Layout.cardRadius
 
         let title = UILabel()
-        title.text = "Не удалось получить ответ"
+        title.text = "Couldn't get a response"
         title.font = AppFont.semibold(15)
         title.textColor = UIColor(hex: 0xEB5B92)
 
@@ -137,7 +137,7 @@ final class ChatErrorBubbleView: UIControl {
         body.numberOfLines = 0
 
         let retry = UILabel()
-        retry.text = "Нажмите, чтобы повторить"
+        retry.text = "Tap to retry"
         retry.font = AppFont.medium(13)
         retry.textColor = AppColor.secondaryText
 

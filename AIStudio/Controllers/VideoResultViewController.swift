@@ -313,10 +313,10 @@ final class VideoResultViewController: UIViewController {
     @MainActor
     private func presentSavedAlert(success: Bool) {
         let alert = UIAlertController(
-            title: success ? "Saved" : "Не удалось сохранить",
+            title: success ? "Saved" : "Couldn't save",
             message: success
                 ? "The video has been saved to your gallery."
-                : "Не удалось загрузить видео. Попробуйте ещё раз.",
+                : "Couldn't download the video. Please try again.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))

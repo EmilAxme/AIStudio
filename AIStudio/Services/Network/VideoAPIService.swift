@@ -31,11 +31,11 @@ enum VideoGenerationError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .failed:
-            return "Не удалось создать видео. Попробуйте ещё раз."
+            return "Couldn't create the video. Please try again."
         case .timedOut:
-            return "Генерация заняла слишком много времени. Попробуйте ещё раз."
+            return "Generation took too long. Please try again."
         case .noResultURL:
-            return "Видео готово, но ссылка недоступна. Попробуйте ещё раз."
+            return "The video is ready, but the link is unavailable. Please try again."
         }
     }
 }

@@ -230,12 +230,12 @@ final class PaywallViewController: UIViewController {
 
     private func presentLoadFailure() {
         let alert = UIAlertController(
-            title: "Не удалось загрузить",
-            message: "Подписки временно недоступны. Проверьте соединение и попробуйте ещё раз.",
+            title: "Couldn't load",
+            message: "Subscriptions are temporarily unavailable. Check your connection and try again.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Повторить", style: .default) { [weak self] _ in self?.loadProducts() })
-        alert.addAction(UIAlertAction(title: "Закрыть", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in self?.loadProducts() })
+        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
         present(alert, animated: true)
     }
 
@@ -297,15 +297,15 @@ final class PaywallViewController: UIViewController {
 
     private func presentError(_ error: Error) {
         let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-        let alert = UIAlertController(title: "Покупка не завершена", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(title: "Purchase not completed", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
 
     private func presentNothingToRestore() {
         let alert = UIAlertController(
-            title: "Покупки не найдены",
-            message: "Активные подписки для восстановления не найдены.",
+            title: "Nothing to restore",
+            message: "We couldn't find any active subscriptions to restore.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))

@@ -1,8 +1,8 @@
 import Foundation
 
-/// Network-layer errors with human-readable (Russian) messages surfaced to the
-/// UI's error states. Transport and decoding stay distinct from HTTP-status
-/// failures so callers can react differently if needed.
+/// Network-layer errors with user-facing messages for the UI's error states.
+/// Transport and decoding stay distinct from HTTP-status failures so callers can
+/// react differently if needed.
 enum APIError: LocalizedError {
     case invalidRequest
     case invalidResponse
@@ -14,20 +14,20 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidRequest:
-            return "Не удалось сформировать запрос. Попробуйте позже."
+            return "Couldn't build the request. Please try again."
         case .invalidResponse:
-            return "Получен некорректный ответ сервера."
+            return "The server returned an invalid response."
         case .unauthorized:
-            return "Доступ запрещён. Проверьте авторизацию."
+            return "Access denied. Please check authorization."
         case .server(let status, let message):
             if let message, !message.isEmpty {
                 return message
             }
-            return "Ошибка сервера (код \(status)). Попробуйте позже."
+            return "Server error (code \(status)). Please try again."
         case .decoding:
-            return "Не удалось обработать ответ сервера."
+            return "Couldn't process the server response."
         case .transport:
-            return "Нет соединения с сервером. Проверьте интернет и повторите."
+            return "No connection to the server. Check your internet and try again."
         }
     }
 }
