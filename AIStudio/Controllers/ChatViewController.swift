@@ -64,6 +64,11 @@ final class ChatViewController: UIViewController {
                 self?.send(text: "Integration self-test — please reply.")
             }
         }
+        // Snapshot helper: hold the typing indicator on screen.
+        if UserDefaults.standard.bool(forKey: "TYPING_DEMO") {
+            isAwaitingReply = true
+            renderMessages(animated: false)
+        }
     }
     #endif
 
@@ -166,10 +171,13 @@ final class ChatViewController: UIViewController {
         NSLayoutConstraint.activate([
             composer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             composer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            // Bottom extends under the home indicator (covered by the bar).
             composer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            // Figma: input bar is 88pt tall above the home indicator (which the bar
-            // extends under). Pin the top 88pt up from the safe-area bottom.
-            composer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -ChatComposerView.barHeight)
+            // The 88pt bar sits just above the keyboard. `keyboardLayoutGuide` tracks
+            // the keyboard automatically and, when it's hidden, aligns to the bottom
+            // safe area — so the resting position matches the Figma exactly, and the
+            // bar (and the messages above it) rise with the keyboard.
+            composer.topAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -ChatComposerView.barHeight)
         ])
     }
 
