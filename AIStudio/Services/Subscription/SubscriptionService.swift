@@ -10,7 +10,7 @@ protocol SubscriptionServicing: AnyObject {
 /// Single source of truth for subscription state and purchases, backed by Apphud.
 ///
 /// Posts `statusDidChange` (object: `Bool` isPremium) after a purchase/restore or
-/// when Apphud reports an update, so gated screens unlock live — no relaunch.
+/// when Apphud reports an update, so gated screens unlock live - no relaunch.
 final class SubscriptionService: NSObject, SubscriptionServicing {
     static let statusDidChange = Notification.Name("SubscriptionService.statusDidChange")
 
@@ -81,7 +81,7 @@ extension SubscriptionService: ApphudDelegate {
 // MARK: - Price formatting (from StoreKit product, never hard-coded)
 
 extension ApphudProduct {
-    /// Localized price string, e.g. "$69.99" — from the StoreKit product.
+    /// Localized price string, e.g. "$69.99" - from the StoreKit product.
     var displayPriceString: String? {
         guard let sk = skProduct else { return nil }
         let formatter = NumberFormatter()

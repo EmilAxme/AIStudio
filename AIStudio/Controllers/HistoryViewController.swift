@@ -1,6 +1,6 @@
 import UIKit
 
-/// Generic history list (AI Chat / AI Video) — dated sections of `HistoryRowView`,
+/// Generic history list (AI Chat / AI Video) - dated sections of `HistoryRowView`,
 /// with an empty state. Reused by both modules via the factory helpers below.
 final class HistoryViewController: UIViewController {
     private let navTitle: String

@@ -5,13 +5,13 @@ struct VideoGenerationParameters {
     /// Text prompt describing the desired motion/scene (template title is used
     /// when the user hasn't typed one).
     let prompt: String
-    /// Source image. When present → `image2video`; when `nil` → `text2video`.
+    /// Source image. When present -> `image2video`; when `nil` -> `text2video`.
     let imageData: Data?
-    /// UI aspect ratio (`"16:9"`, `"9:16"`, `"1:1"`) — used by `text2video`.
+    /// UI aspect ratio (`"16:9"`, `"9:16"`, `"1:1"`) - used by `text2video`.
     let aspectRatio: String
     /// UI quality label (`"540p"`, `"720p"`, `"1080p"`, `"4K"`).
     let quality: String
-    /// Clip length in seconds (PixVerse accepts 1–10).
+    /// Clip length in seconds (PixVerse accepts 1-10).
     let durationSeconds: Int
 
     init(prompt: String, imageData: Data?, aspectRatio: String, quality: String, durationSeconds: Int = 5) {
@@ -51,7 +51,7 @@ final class VideoAPIService: VideoGenerationServicing {
     private let network: NetworkService
     private let userProvider: UserIdentifierProviding
 
-    /// Polling cadence and ceiling (≈2 min @ 2s).
+    /// Polling cadence and ceiling (~2 min @ 2s).
     private let pollInterval: UInt64 = 2 * 1_000_000_000
     private let maxPolls = 60
 
@@ -84,7 +84,7 @@ final class VideoAPIService: VideoGenerationServicing {
             if let urlString = status.videoUrl, let url = URL(string: urlString) {
                 return url
             }
-            // Still processing — wait, then poll again.
+            // Still processing - wait, then poll again.
             try await Task.sleep(nanoseconds: pollInterval)
         }
         throw VideoGenerationError.timedOut

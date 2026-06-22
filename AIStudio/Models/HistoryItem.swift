@@ -13,7 +13,7 @@ struct HistoryItem {
     }
 }
 
-/// A dated group of history items ("Today", "Yesterday", …).
+/// A dated group of history items ("Today", "Yesterday", ...).
 struct HistorySection {
     let title: String
     let items: [HistoryItem]

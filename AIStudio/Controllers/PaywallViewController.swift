@@ -205,7 +205,7 @@ final class PaywallViewController: UIViewController {
 
     /// Binds products to the two rows. Prefers a natural year+month split; when the
     /// paywall has a single product (or two sharing a period) it assigns distinct
-    /// products by source order and hides the unused row — never binding the same
+    /// products by source order and hides the unused row - never binding the same
     /// product to both rows (which would show duplicate prices / a mislabeled plan).
     private func bind(products: [ApphudProduct]) {
         let yearlyByPeriod = products.first { $0.skProduct?.subscriptionPeriod?.unit == .year }
@@ -352,7 +352,7 @@ final class PaywallViewController: UIViewController {
     }
 
     /// A deferred / Ask-to-Buy purchase succeeded without an error but isn't active
-    /// yet — tell the user it's awaiting approval rather than leaving a silent no-op.
+    /// yet - tell the user it's awaiting approval rather than leaving a silent no-op.
     private func presentPurchasePending() {
         let alert = UIAlertController(
             title: "Purchase pending approval",

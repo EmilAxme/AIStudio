@@ -4,14 +4,14 @@ import Foundation
 ///
 /// In production these secrets (bearer token, Apphud key) would be injected from
 /// an `.xcconfig` / Keychain / remote config rather than hard-coded. They live
-/// here so nothing is hard-coded *at the call site* — every consumer reads from
+/// here so nothing is hard-coded *at the call site* - every consumer reads from
 /// `AppConfig`, giving a single place to swap them out.
 enum AppConfig {
     enum API {
         /// Dola text-chat service. The `/dola` prefix is part of the path space
-        /// (e.g. `…/dola/chats/{id}/messages`), so endpoints append `/chats/…`.
+        /// (e.g. `.../dola/chats/{id}/messages`), so endpoints append `/chats/...`.
         static let chatBaseURL = URL(string: "https://nebulaapps.site/dola")!
-        /// PixVerse video service. Endpoints append `/api/v1/…`.
+        /// PixVerse video service. Endpoints append `/api/v1/...`.
         static let videoBaseURL = URL(string: "https://nebulaapps.site/pixverse")!
         /// Permanent (non-refreshable) JWT issued for this test integration.
         static let bearerToken = "REDACTED"

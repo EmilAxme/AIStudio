@@ -5,7 +5,7 @@ struct VideoRequest {
     let prompt: String
     /// Asset name used as the result-screen poster while/after generating.
     let imageName: String
-    /// Photos picked on the Create screen. Empty → text-to-video; otherwise the
+    /// Photos picked on the Create screen. Empty -> text-to-video; otherwise the
     /// first image drives image-to-video.
     let images: [UIImage]
     let aspectRatio: String

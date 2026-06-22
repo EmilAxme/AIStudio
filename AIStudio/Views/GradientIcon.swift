@@ -7,7 +7,7 @@ final class GradientIconView: UIView {
     private let maskLayer = CALayer()
     private let iconImage: UIImage
 
-    /// Designated init — fill the given (template/alpha) image with a gradient.
+    /// Designated init - fill the given (template/alpha) image with a gradient.
     init(
         image: UIImage,
         colors: [UIColor] = AppColor.inputGradient,
@@ -24,7 +24,7 @@ final class GradientIconView: UIView {
         layer.mask = maskLayer
     }
 
-    /// Convenience — fill an asset image (e.g. the exported Figma icons).
+    /// Convenience - fill an asset image (e.g. the exported Figma icons).
     convenience init(
         imageName: String,
         colors: [UIColor] = AppColor.inputGradient,
@@ -35,7 +35,7 @@ final class GradientIconView: UIView {
         self.init(image: img, colors: colors, startPoint: startPoint, endPoint: endPoint)
     }
 
-    /// Convenience — fill an SF Symbol with a gradient (fallback when no asset).
+    /// Convenience - fill an SF Symbol with a gradient (fallback when no asset).
     convenience init(
         symbol: String,
         pointSize: CGFloat,

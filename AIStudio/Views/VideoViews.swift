@@ -113,7 +113,7 @@ final class FormOptionView: UIControl {
     }
 }
 
-/// Upload slot: an outlined "+" tile that becomes the chosen photo with a remove (✕) badge.
+/// Upload slot: an outlined "+" tile that becomes the chosen photo with a remove (x) badge.
 final class UploadTile: UIControl {
     private let gradient = GradientView(colors: AppColor.inputGradient)
     private let inner = UIView()
@@ -195,7 +195,7 @@ final class UploadTile: UIControl {
     }
 
     /// Taps near the half-overhanging remove badge go to it; every other in-bounds tap
-    /// belongs to the tile itself (a UIControl) — its decorative subviews must not
+    /// belongs to the tile itself (a UIControl) - its decorative subviews must not
     /// swallow the touch, or the "+" / re-pick action never fires.
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         if !removeButton.isHidden {

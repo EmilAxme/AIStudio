@@ -73,7 +73,7 @@ final class AssistantMessageView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
-/// Loading state for an in-flight assistant reply — the Figma "AI's response"
+/// Loading state for an in-flight assistant reply - the Figma "AI's response"
 /// bubble (gradient lead dot + two grey dots), shown left-aligned at its natural
 /// size with a soft pulse to read as active.
 final class TypingIndicatorView: UIView {
@@ -417,7 +417,7 @@ final class ChatComposerView: UIView {
     }
 
     #if DEBUG
-    /// Snapshot/QA helper: drops in demo text and runs the empty→send morph so the
+    /// Snapshot/QA helper: drops in demo text and runs the empty->send morph so the
     /// transition can be captured on launch. Compiled out of Release builds.
     func runSendTransitionDemo(_ text: String = "Test message") {
         textField.text = text

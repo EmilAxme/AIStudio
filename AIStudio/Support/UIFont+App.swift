@@ -1,6 +1,6 @@
 import UIKit
 
-/// App typography — Inter (the design font), with a graceful system fallback.
+/// App typography - Inter (the design font), with a graceful system fallback.
 enum AppFont {
     static func font(_ size: CGFloat, _ weight: UIFont.Weight) -> UIFont {
         let name: String

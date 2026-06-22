@@ -179,7 +179,7 @@ final class ChatViewController: UIViewController {
             composer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             // The 88pt bar sits just above the keyboard. `keyboardLayoutGuide` tracks
             // the keyboard automatically and, when it's hidden, aligns to the bottom
-            // safe area — so the resting position matches the Figma exactly, and the
+            // safe area - so the resting position matches the Figma exactly, and the
             // bar (and the messages above it) rise with the keyboard.
             composer.topAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -ChatComposerView.barHeight)
         ])

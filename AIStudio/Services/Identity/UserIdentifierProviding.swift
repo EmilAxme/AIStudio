@@ -8,7 +8,7 @@ protocol UserIdentifierProviding {
     var userID: String { get }
 }
 
-/// Backend `user_id` constraints: 1–36 chars, `^[A-Za-z0-9._:-]+$`.
+/// Backend `user_id` constraints: 1-36 chars, `^[A-Za-z0-9._:-]+$`.
 enum UserIdentifierSanitizer {
     private static let allowed = Set(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._:-"
@@ -22,7 +22,7 @@ enum UserIdentifierSanitizer {
 /// Primary provider: the Apphud user id (stable, persisted by the SDK).
 ///
 /// `Apphud.userID()` is `@MainActor`, but our network calls run off the main
-/// actor — so we cache the value (primed once on launch) and read the cache.
+/// actor - so we cache the value (primed once on launch) and read the cache.
 /// Falls back to a stable device UUID if Apphud's id is empty.
 final class ApphudUserIdentifierProvider: UserIdentifierProviding {
     private let fallback: UserIdentifierProviding

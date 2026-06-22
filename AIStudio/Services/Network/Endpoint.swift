@@ -19,7 +19,7 @@ extension Endpoint {
 
     func urlRequest() throws -> URLRequest {
         // Append `path` to `baseURL` preserving the base's own path component
-        // (e.g. `…/dola` + `/chats/x/messages`).
+        // (e.g. `.../dola` + `/chats/x/messages`).
         guard var components = URLComponents(
             url: baseURL.appendingPathComponent(path),
             resolvingAgainstBaseURL: false

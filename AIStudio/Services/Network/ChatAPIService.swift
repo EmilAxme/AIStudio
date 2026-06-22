@@ -9,7 +9,7 @@ struct ChatReply {
 protocol ChatServicing {
     /// Sends `message` within `chatID` and returns the assistant reply.
     ///
-    /// `chatID` is a client-generated UUID — the backend creates the chat on its
+    /// `chatID` is a client-generated UUID - the backend creates the chat on its
     /// first use and echoes the id back, so callers reuse the same id for a
     /// conversation.
     func send(message: String, chatID: String) async throws -> ChatReply

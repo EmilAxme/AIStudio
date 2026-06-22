@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Controllers receive services through their initializers (defaulting to these
 /// instances), so the whole graph can be swapped in tests/previews without
-/// editing call sites — and no service is a global singleton beyond this root.
+/// editing call sites - and no service is a global singleton beyond this root.
 enum AppServices {
     static let userIdentifier = ApphudUserIdentifierProvider()
     static let network: NetworkService = URLSessionNetworkService()

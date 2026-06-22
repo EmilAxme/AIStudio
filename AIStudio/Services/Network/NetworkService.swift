@@ -6,7 +6,7 @@ protocol NetworkService {
 }
 
 /// `URLSession`-backed implementation. Maps status codes to `APIError`, decodes
-/// 2xx bodies (snake_case → camelCase), and logs request/response only in DEBUG.
+/// 2xx bodies (snake_case -> camelCase), and logs request/response only in DEBUG.
 final class URLSessionNetworkService: NetworkService {
     private let session: URLSession
     private let decoder: JSONDecoder
@@ -28,7 +28,7 @@ final class URLSessionNetworkService: NetworkService {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            // No HTTP response at all → transport failure (offline, DNS, timeout).
+            // No HTTP response at all -> transport failure (offline, DNS, timeout).
             throw APIError.transport(error)
         }
 
