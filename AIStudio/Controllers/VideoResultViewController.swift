@@ -16,7 +16,7 @@ final class VideoResultViewController: UIViewController {
     private let downloadButton = GradientButton(title: "Download")
     private let actionsStack = UIStackView()
 
-    private let orb = GradientView(colors: AppColor.inputGradient)
+    private let orb = UIImageView(image: UIImage(named: "videoGenOrb"))
     private let statusTitle = UILabel()
     private let statusSubtitle = UILabel()
     private let loadingStack = UIStackView()
@@ -127,23 +127,11 @@ final class VideoResultViewController: UIViewController {
         actionsStack.addArrangedSubview(shareButton)
         actionsStack.addArrangedSubview(downloadButton)
 
-        // Loading state (orb + text)
-        orb.layer.cornerRadius = 70
-        orb.clipsToBounds = true
+        // Loading state (glossy generation orb image + text)
+        orb.contentMode = .scaleAspectFit
         orb.translatesAutoresizingMaskIntoConstraints = false
-        orb.widthAnchor.constraint(equalToConstant: 140).isActive = true
-        orb.heightAnchor.constraint(equalToConstant: 140).isActive = true
-        let orbHighlight = UIView()
-        orbHighlight.backgroundColor = UIColor.white.withAlphaComponent(0.35)
-        orbHighlight.layer.cornerRadius = 22
-        orbHighlight.translatesAutoresizingMaskIntoConstraints = false
-        orb.addSubview(orbHighlight)
-        NSLayoutConstraint.activate([
-            orbHighlight.widthAnchor.constraint(equalToConstant: 44),
-            orbHighlight.heightAnchor.constraint(equalToConstant: 30),
-            orbHighlight.topAnchor.constraint(equalTo: orb.topAnchor, constant: 26),
-            orbHighlight.leadingAnchor.constraint(equalTo: orb.leadingAnchor, constant: 34)
-        ])
+        orb.widthAnchor.constraint(equalToConstant: 150).isActive = true
+        orb.heightAnchor.constraint(equalToConstant: 210).isActive = true
 
         statusTitle.font = AppFont.semibold(18)
         statusTitle.textColor = .white
@@ -279,11 +267,12 @@ final class VideoResultViewController: UIViewController {
     private func startOrbPulse() {
         orb.layer.removeAllAnimations()
         let pulse = CABasicAnimation(keyPath: "transform.scale")
-        pulse.fromValue = 0.92
-        pulse.toValue = 1.0
-        pulse.duration = 0.8
+        pulse.fromValue = 0.88
+        pulse.toValue = 1.06
+        pulse.duration = 0.9
         pulse.autoreverses = true
         pulse.repeatCount = .infinity
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         orb.layer.add(pulse, forKey: "pulse")
     }
 
