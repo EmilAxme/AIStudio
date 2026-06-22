@@ -407,13 +407,6 @@ final class ChatComposerView: UIView {
         onSend?(text)
     }
 
-    #if DEBUG
-    func runSendTransitionDemo(_ text: String = "Test message") {
-        textField.text = text
-        applySendState(true, animated: true)
-    }
-    #endif
-
     private func iconButton(imageName: String) -> UIButton {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: imageName), for: .normal)

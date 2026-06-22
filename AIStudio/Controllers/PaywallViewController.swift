@@ -183,10 +183,6 @@ final class PaywallViewController: UIViewController {
                 }
                 let resolved = paywall.products.filter { $0.skProduct != nil }
                 guard !resolved.isEmpty else {
-                    #if DEBUG
-                    let ids = paywall.products.map { $0.productId }.joined(separator: ", ")
-                    NSLog("[Apphud] paywall '\(paywall.identifier)' has no StoreKit-resolved products. Ids: [\(ids)]. Add these to AIStudio.storekit (or App Store Connect).")
-                    #endif
                     self.presentProductsUnavailable()
                     return
                 }

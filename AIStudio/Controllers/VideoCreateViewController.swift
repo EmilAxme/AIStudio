@@ -64,14 +64,6 @@ final class VideoCreateViewController: UIViewController {
         setupView()
         rebuildTiles()
         updateCreateEnabled()
-        #if DEBUG
-        if UserDefaults.standard.string(forKey: "DEBUG_VC_STATE") != nil {
-            let demo = UIImage(named: currentTemplate.imageName)
-            for i in selectedImages.indices { selectedImages[i] = demo }
-            rebuildTiles()
-            updateCreateEnabled()
-        }
-        #endif
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -80,33 +72,6 @@ final class VideoCreateViewController: UIViewController {
         super.viewWillAppear(animated)
         resumePendingCreateIfUnlocked()
     }
-
-    #if DEBUG
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        let defaults = UserDefaults.standard
-        if defaults.object(forKey: "VC_TEMPLATE") != nil {
-            let idx = defaults.integer(forKey: "VC_TEMPLATE")
-            if templates.indices.contains(idx) {
-                carousel.setContentOffset(CGPoint(x: CGFloat(idx) * carouselPageWidth, y: 0), animated: false)
-                settle(to: idx)
-            }
-        }
-        if defaults.bool(forKey: "DROPDOWN_DEMO") {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.openFormat() }
-        }
-        if defaults.bool(forKey: "PHOTO_ALERT_DEMO") {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.pickPhoto(forTile: 0) }
-        }
-        if defaults.bool(forKey: "REMOVE_DEMO") {
-            selectedImages[0] = UIImage(named: currentTemplate.imageName)
-            rebuildTiles(); updateCreateEnabled()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) { [weak self] in
-                (self?.tilesStack.arrangedSubviews.first as? UploadTile)?.debugSimulateRemoveTap()
-            }
-        }
-    }
-    #endif
 
     private func setupView() {
         let back = UIButton(type: .system)

@@ -20,15 +20,6 @@ final class SubscriptionService: NSObject, SubscriptionServicing {
             ?? paywalls.first
         if let paywall {
             await MainActor.run { Apphud.paywallShown(paywall) }
-            #if DEBUG
-            let ids = paywall.products.map { $0.productId }.joined(separator: ", ")
-            NSLog("[Apphud] paywall '\(paywall.identifier)' products: [\(ids)]")
-            #endif
-        } else {
-            #if DEBUG
-            let ids = placements.map { $0.identifier }.joined(separator: ", ")
-            NSLog("[Apphud] No paywall resolved. placements=\(placements.count) [\(ids)]. If 0, the Apphud backend (gateway.apphud.com) was unreachable — usually a VPN/DNS issue on the simulator; if >0, no paywall named '\(AppConfig.Apphud.paywallID)' is configured.")
-            #endif
         }
         return paywall
     }

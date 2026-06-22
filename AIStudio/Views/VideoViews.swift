@@ -204,9 +204,6 @@ final class UploadTile: UIControl {
 
     @objc private func removeTapped() { onRemove?() }
 
-    #if DEBUG
-    func debugSimulateRemoveTap() { removeTapped() }
-    #endif
 }
 
 // MARK: - RatioIconView

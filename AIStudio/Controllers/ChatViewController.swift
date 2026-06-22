@@ -70,26 +70,6 @@ final class ChatViewController: UIViewController {
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
-    #if DEBUG
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if UserDefaults.standard.bool(forKey: "COMPOSER_DEMO") {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-                self?.composer.runSendTransitionDemo()
-            }
-        }
-        if UserDefaults.standard.bool(forKey: "SELFTEST_CHAT") {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.send(text: "Test message")
-            }
-        }
-        if UserDefaults.standard.bool(forKey: "TYPING_DEMO") {
-            replyState = .loading
-            renderMessages(animated: false)
-        }
-    }
-    #endif
-
     // MARK: - Setup
 
     private func setupHeader() {
