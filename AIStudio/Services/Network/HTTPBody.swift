@@ -1,15 +1,9 @@
 import Foundation
 
-/// The three request-body shapes this backend actually uses:
-/// - JSON for Dola chat,
-/// - `application/x-www-form-urlencoded` for `text2video`,
-/// - `multipart/form-data` for `image2video` (mixed text fields + a file).
-///
-/// (The brief described a single `Encodable?` body; the live PixVerse contract
-/// requires form + multipart uploads, so the body is modelled as an enum. JSON
-/// still flows through a type-erased `Encodable` as requested — see `AnyEncodable`.)
+/// Request body in one of the formats the backend uses: JSON (chat),
+/// x-www-form-urlencoded (text2video), multipart (image2video).
 enum HTTPBody {
-    case json(any Encodable)
+    case json(Encodable)
     case formURLEncoded([String: String])
     case multipart(MultipartFormData)
 
@@ -21,13 +15,13 @@ enum HTTPBody {
         }
     }
 
-    /// Encodes the body to `Data`. JSON uses snake_case to match the backend.
+    /// JSON uses snake_case to match the backend.
     func encoded() throws -> Data {
         switch self {
         case .json(let value):
             let encoder = JSONEncoder()
             encoder.keyEncodingStrategy = .convertToSnakeCase
-            return try encoder.encode(AnyEncodable(value))
+            return try encoder.encode(value)
         case .formURLEncoded(let fields):
             let pairs = fields.map { key, value in
                 "\(Self.formEscape(key))=\(Self.formEscape(value))"
@@ -38,27 +32,10 @@ enum HTTPBody {
         }
     }
 
-    /// `x-www-form-urlencoded` percent-encoding (spaces become `+` is also valid,
-    /// but `%20` via this allowed set is accepted by FastAPI and avoids ambiguity).
     private static func formEscape(_ string: String) -> String {
         var allowed = CharacterSet.alphanumerics
         allowed.insert(charactersIn: "-._~")
         return string.addingPercentEncoding(withAllowedCharacters: allowed) ?? string
-    }
-}
-
-/// Type-erased `Encodable` so heterogeneous request models can be encoded via a
-/// single `JSONEncoder` call (an existential `any Encodable` can't be encoded
-/// directly on iOS 16).
-struct AnyEncodable: Encodable {
-    private let encodeTo: (Encoder) throws -> Void
-
-    init(_ wrapped: some Encodable) {
-        encodeTo = wrapped.encode
-    }
-
-    func encode(to encoder: Encoder) throws {
-        try encodeTo(encoder)
     }
 }
 

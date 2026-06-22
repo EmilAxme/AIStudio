@@ -63,18 +63,17 @@ final class ChatAPIService: ChatServicing {
         var body: HTTPBody? {
             switch self {
             case .sendMessage(_, let message, _):
-                return .json(RequestBody(message: message))
+                return .json(ChatMessageRequest(message: message))
             }
         }
     }
 
     // MARK: - DTOs
 
-    private struct RequestBody: Encodable {
+    private struct ChatMessageRequest: Encodable {
         let message: String
     }
 
-    /// Matches `SendDolaMessageResponse` (snake_case decoded to camelCase).
     private struct SendDolaMessageResponse: Decodable {
         let chatId: String
         let assistantMessage: String
