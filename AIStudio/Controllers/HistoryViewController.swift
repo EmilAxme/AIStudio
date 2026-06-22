@@ -1,22 +1,25 @@
 import UIKit
+import AVKit
 
 /// Generic history list (AI Chat / AI Video) - dated sections of `HistoryRowView`,
 /// with an empty state. Reused by both modules via the factory helpers below.
 final class HistoryViewController: UIViewController {
     private let navTitle: String
     private let sections: [HistorySection]
-    private let gridImageNames: [String]?
+    private let gridImages: [UIImage]?
     private let emptyIcon: String
     private let emptyTitle: String
     private let emptySubtitle: String
 
     /// Invoked when a list row is tapped (chat history uses it to reopen a chat).
     var onSelectItem: ((HistoryItem) -> Void)?
+    /// Invoked when a grid thumbnail is tapped (video history uses it to play).
+    var onSelectGridIndex: ((Int) -> Void)?
 
-    init(title: String, sections: [HistorySection], gridImageNames: [String]? = nil, emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
+    init(title: String, sections: [HistorySection], gridImages: [UIImage]? = nil, emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
         self.navTitle = title
         self.sections = sections
-        self.gridImageNames = gridImageNames
+        self.gridImages = gridImages
         self.emptyIcon = emptyIcon
         self.emptyTitle = emptyTitle
         self.emptySubtitle = emptySubtitle
@@ -42,7 +45,7 @@ final class HistoryViewController: UIViewController {
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
-        if let grid = gridImageNames, !grid.isEmpty {
+        if let grid = gridImages, !grid.isEmpty {
             setupGrid(below: header, images: grid)
         } else if sections.isEmpty {
             setupEmptyState()
@@ -52,7 +55,7 @@ final class HistoryViewController: UIViewController {
     }
 
     /// Two-column masonry of generated thumbnails (AI Video History).
-    private func setupGrid(below header: UIView, images: [String]) {
+    private func setupGrid(below header: UIView, images: [UIImage]) {
         let scrollView = UIScrollView()
         scrollView.alwaysBounceVertical = true
         scrollView.showsVerticalScrollIndicator = false
@@ -68,14 +71,23 @@ final class HistoryViewController: UIViewController {
 
         // Staggered heights give the masonry feel.
         let ratios: [CGFloat] = [1.32, 1.0, 1.46, 1.12]
-        for (index, name) in images.enumerated() {
-            let imageView = UIImageView(image: UIImage(named: name))
+        for (index, image) in images.enumerated() {
+            let imageView = UIImageView(image: image)
             imageView.contentMode = .scaleAspectFill
             imageView.clipsToBounds = true
-            imageView.layer.cornerRadius = 18
+            imageView.isUserInteractionEnabled = false
             imageView.translatesAutoresizingMaskIntoConstraints = false
-            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: ratios[index % ratios.count]).isActive = true
-            (index % 2 == 0 ? leftColumn : rightColumn).addArrangedSubview(imageView)
+
+            let cell = UIControl()
+            cell.layer.cornerRadius = 18
+            cell.clipsToBounds = true
+            cell.translatesAutoresizingMaskIntoConstraints = false
+            cell.addSubview(imageView)
+            imageView.pinToEdges(of: cell)
+            imageView.heightAnchor.constraint(equalTo: cell.widthAnchor, multiplier: ratios[index % ratios.count]).isActive = true
+            cell.addAction(UIAction { [weak self] _ in self?.onSelectGridIndex?(index) }, for: .touchUpInside)
+
+            (index % 2 == 0 ? leftColumn : rightColumn).addArrangedSubview(cell)
         }
 
         let columns = UIStackView(arrangedSubviews: [leftColumn, rightColumn])
@@ -224,19 +236,30 @@ final class HistoryViewController: UIViewController {
         return vc
     }
 
-    private static let mockVideoThumbnails = [
-        "GalleryGirl", "AstroGirl", "ClayFool", "AstroGirl",
-        "ClayFool", "GalleryGirl", "AstroGirl", "GalleryGirl"
-    ]
-
     static func video(empty: Bool = false) -> HistoryViewController {
-        HistoryViewController(
+        let store = AppServices.videoHistory
+        let items = empty ? [] : store.items()
+        let posters = items.map { store.poster(for: $0) ?? UIImage() }
+        let vc = HistoryViewController(
             title: "AI Video History",
             sections: [],
-            gridImageNames: empty ? nil : mockVideoThumbnails,
+            gridImages: items.isEmpty ? nil : posters,
             emptyIcon: "play.rectangle",
             emptyTitle: "No videos yet",
             emptySubtitle: "Your generated videos will appear here"
         )
+        vc.onSelectGridIndex = { [weak vc] index in
+            guard items.indices.contains(index),
+                  let urlString = items[index].videoURLString,
+                  let url = URL(string: urlString) else { return }
+            vc?.playVideo(url)
+        }
+        return vc
+    }
+
+    private func playVideo(_ url: URL) {
+        let controller = AVPlayerViewController()
+        controller.player = AVPlayer(url: url)
+        present(controller, animated: true) { controller.player?.play() }
     }
 }

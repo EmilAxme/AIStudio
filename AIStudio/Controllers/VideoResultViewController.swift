@@ -8,6 +8,8 @@ import Photos
 final class VideoResultViewController: UIViewController {
     private let request: VideoRequest
     private let videoService: VideoGenerationServicing
+    private let history: VideoHistoryStore
+    private let historyItemID = UUID()
     private var resultURL: URL?
     private var generationTask: Task<Void, Never>?
     private var downloadTask: Task<Void, Never>?
@@ -29,11 +31,12 @@ final class VideoResultViewController: UIViewController {
     private let statusSubtitle = UILabel()
     private let loadingStack = UIStackView()
 
-    private var state: ViewState = .loading { didSet { renderState() } }
+    private var state: ViewState = .loading { didSet { renderState(animated: true) } }
 
-    init(request: VideoRequest, videoService: VideoGenerationServicing = AppServices.video) {
+    init(request: VideoRequest, videoService: VideoGenerationServicing = AppServices.video, history: VideoHistoryStore = AppServices.videoHistory) {
         self.request = request
         self.videoService = videoService
+        self.history = history
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -216,6 +219,7 @@ final class VideoResultViewController: UIViewController {
                 await MainActor.run {
                     self.resultURL = url
                     self.state = .success
+                    self.saveToHistory(url: url)
                 }
             } catch is CancellationError {
                 return
@@ -226,6 +230,17 @@ final class VideoResultViewController: UIViewController {
                 }
             }
         }
+    }
+
+    private func saveToHistory(url: URL) {
+        history.save(
+            id: historyItemID,
+            title: request.prompt,
+            templateImageName: request.imageName,
+            videoURL: url,
+            poster: resultImageView.image,
+            createdAt: Date()
+        )
     }
 
     /// Plays the generated video (the real result URL) in a system player.
@@ -294,7 +309,14 @@ final class VideoResultViewController: UIViewController {
         playerItem = nil
     }
 
-    private func renderState() {
+    private func renderState(animated: Bool = false) {
+        guard animated else { applyState(); return }
+        UIView.transition(with: view, duration: 0.25, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+            self.applyState()
+        }
+    }
+
+    private func applyState() {
         switch state {
         case .idle, .loading:
             loadingStack.isHidden = false

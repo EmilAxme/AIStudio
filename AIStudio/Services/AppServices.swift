@@ -12,4 +12,5 @@ enum AppServices {
     static let video: VideoGenerationServicing = VideoAPIService(network: network, userProvider: userIdentifier)
     static let subscription = SubscriptionService()
     static let chatHistory = ChatHistoryStore()
+    static let videoHistory = VideoHistoryStore()
 }
