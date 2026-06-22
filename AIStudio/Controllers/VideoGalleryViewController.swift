@@ -158,9 +158,12 @@ final class VideoGalleryViewController: UIViewController {
     }
 
     private func selectCategory(_ category: String) {
+        guard category != selectedCategory else { return }
         selectedCategory = category
-        chipStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        categories.forEach { chipStack.addArrangedSubview(makeChip(title: $0)) }
+        UIView.transition(with: chipStack, duration: 0.2, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+            self.chipStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+            self.categories.forEach { self.chipStack.addArrangedSubview(self.makeChip(title: $0)) }
+        }
     }
 
     @objc private func showVideoHistory() {
