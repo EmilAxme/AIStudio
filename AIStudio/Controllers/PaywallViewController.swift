@@ -182,11 +182,22 @@ final class PaywallViewController: UIViewController {
             let paywall = await self.subscription.loadPaywall()
             await MainActor.run {
                 self.unlock.setLoading(false)
-                guard let products = paywall?.products, !products.isEmpty else {
+                guard let paywall else {
+                    // Paywall didn't load at all: no network, or the SDK couldn't reach Apphud.
                     self.presentLoadFailure()
                     return
                 }
-                self.bind(products: products)
+                // Paywall loaded; keep only products StoreKit actually resolved (have a price).
+                let resolved = paywall.products.filter { $0.skProduct != nil }
+                guard !resolved.isEmpty else {
+                    #if DEBUG
+                    let ids = paywall.products.map { $0.productId }.joined(separator: ", ")
+                    NSLog("[Apphud] paywall '\(paywall.identifier)' has no StoreKit-resolved products. Ids: [\(ids)]. Add these to AIStudio.storekit (or App Store Connect).")
+                    #endif
+                    self.presentProductsUnavailable()
+                    return
+                }
+                self.bind(products: resolved)
             }
         }
     }
@@ -252,10 +263,23 @@ final class PaywallViewController: UIViewController {
         }
     }
 
+    /// Couldn't reach the store / load the paywall (network or SDK).
     private func presentLoadFailure() {
         let alert = UIAlertController(
             title: "Couldn't load",
-            message: "Subscriptions are temporarily unavailable. Check your connection and try again.",
+            message: "Couldn't reach the store. Check your connection and try again.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in self?.loadProducts() })
+        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+        present(alert, animated: true)
+    }
+
+    /// Paywall loaded, but no products resolved from the store (ids not configured).
+    private func presentProductsUnavailable() {
+        let alert = UIAlertController(
+            title: "Subscriptions unavailable",
+            message: "Subscription options aren't available right now. Please try again later.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in self?.loadProducts() })
@@ -277,7 +301,7 @@ final class PaywallViewController: UIViewController {
 
     @objc private func unlockTapped() {
         guard let product = selectedPlanView.product else {
-            presentLoadFailure()
+            presentProductsUnavailable()
             return
         }
         unlock.setLoading(true)
