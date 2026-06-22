@@ -12,6 +12,13 @@ final class VideoResultViewController: UIViewController {
     private var generationTask: Task<Void, Never>?
     private var downloadTask: Task<Void, Never>?
 
+    // Playback: kept so a failed/broken URL surfaces a clean error instead of a
+    // silent hang or crash, and so observers can be torn down.
+    private var player: AVPlayer?
+    private var playerItem: AVPlayerItem?
+    private var playerStatusObserver: NSKeyValueObservation?
+    private weak var playerController: AVPlayerViewController?
+
     private let resultImageView = UIImageView()
     private let shareButton = UIButton(type: .system)
     private let downloadButton = GradientButton(title: "Download")
@@ -35,6 +42,7 @@ final class VideoResultViewController: UIViewController {
     deinit {
         generationTask?.cancel()
         downloadTask?.cancel()
+        teardownPlayer()
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -221,12 +229,69 @@ final class VideoResultViewController: UIViewController {
     }
 
     /// Plays the generated video (the real result URL) in a system player.
+    /// Observes item status so a broken/unplayable URL surfaces a clean error
+    /// instead of an endless spinner or a crash.
     @objc private func playResult() {
         guard let url = resultURL else { return }
-        let player = AVPlayer(url: url)
+        teardownPlayer()
+
+        let item = AVPlayerItem(url: url)
+        let player = AVPlayer(playerItem: item)
+        self.playerItem = item
+        self.player = player
+
+        playerStatusObserver = item.observe(\.status, options: [.new]) { [weak self] item, _ in
+            guard item.status == .failed else { return }
+            DispatchQueue.main.async { self?.handlePlaybackFailure(item.error) }
+        }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(playbackFailedToEnd(_:)),
+            name: .AVPlayerItemFailedToPlayToEndTime,
+            object: item
+        )
+
         let controller = AVPlayerViewController()
         controller.player = player
+        playerController = controller
         present(controller, animated: true) { player.play() }
+    }
+
+    @objc private func playbackFailedToEnd(_ note: Notification) {
+        let error = note.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
+        DispatchQueue.main.async { [weak self] in self?.handlePlaybackFailure(error) }
+    }
+
+    /// Tears down the player, dismisses the system player if it's up, and shows a
+    /// readable error. Idempotent (status + failed-to-end can both fire).
+    private func handlePlaybackFailure(_ error: Error?) {
+        guard playerItem != nil else { return }
+        teardownPlayer()
+        let message = (error as? LocalizedError)?.errorDescription
+            ?? error?.localizedDescription
+            ?? "This video can't be played right now."
+        let showAlert = { [weak self] in
+            guard let self else { return }
+            let alert = UIAlertController(title: "Can't play video", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
+        if let controller = playerController, controller.presentingViewController != nil {
+            controller.dismiss(animated: true, completion: showAlert)
+        } else {
+            showAlert()
+        }
+    }
+
+    private func teardownPlayer() {
+        playerStatusObserver?.invalidate()
+        playerStatusObserver = nil
+        if let item = playerItem {
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemFailedToPlayToEndTime, object: item)
+        }
+        player?.pause()
+        player = nil
+        playerItem = nil
     }
 
     private func renderState() {
