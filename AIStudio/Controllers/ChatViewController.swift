@@ -12,8 +12,9 @@ final class ChatViewController: UIViewController {
     /// Client-generated chat id; the backend creates the chat on first send and
     /// echoes it back, so the whole conversation reuses this id.
     private var chatID = UUID().uuidString
-    private var isAwaitingReply = false
-    private var errorMessage: String?
+    /// Pending assistant reply: .loading shows the typing bubble, .error shows the
+    /// error bubble, .idle/.success show neither.
+    private var replyState: ViewState = .idle
     private var lastUserText: String?
     private var replyTask: Task<Void, Never>?
 
@@ -66,7 +67,7 @@ final class ChatViewController: UIViewController {
         }
         // Snapshot helper: hold the typing indicator on screen.
         if UserDefaults.standard.bool(forKey: "TYPING_DEMO") {
-            isAwaitingReply = true
+            replyState = .loading
             renderMessages(animated: false)
         }
     }
@@ -182,7 +183,9 @@ final class ChatViewController: UIViewController {
     }
 
     private func renderMessages(animated: Bool) {
-        let hasContent = !messages.isEmpty || isAwaitingReply || errorMessage != nil
+        let isAwaiting = replyState == .loading
+        let errorText: String? = { if case .error(let m) = replyState { return m } else { return nil } }()
+        let hasContent = !messages.isEmpty || isAwaiting || errorText != nil
         emptyStateView.isHidden = hasContent
         scrollView.isHidden = !hasContent
         messagesStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -196,11 +199,11 @@ final class ChatViewController: UIViewController {
                 messagesStack.addArrangedSubview(assistantAligned(content))
             }
         }
-        if isAwaitingReply {
+        if isAwaiting {
             messagesStack.addArrangedSubview(assistantAligned(TypingIndicatorView()))
         }
-        if let errorMessage {
-            let bubble = ChatErrorBubbleView(message: errorMessage)
+        if let errorText {
+            let bubble = ChatErrorBubbleView(message: errorText)
             bubble.onRetry = { [weak self] in self?.retryLastMessage() }
             messagesStack.addArrangedSubview(assistantAligned(bubble))
         }
@@ -249,11 +252,10 @@ final class ChatViewController: UIViewController {
         requestReply(for: text)
     }
 
-    /// Sends `text` to the live API, driving the loading → success/error states.
+    /// Sends `text` to the live API, driving the loading -> success/error states.
     private func requestReply(for text: String) {
         replyTask?.cancel()
-        errorMessage = nil
-        isAwaitingReply = true
+        replyState = .loading
         renderMessages(animated: true)
 
         replyTask = Task { [weak self] in
@@ -263,7 +265,7 @@ final class ChatViewController: UIViewController {
                 try Task.checkCancellation()
                 await MainActor.run {
                     self.chatID = reply.chatID
-                    self.isAwaitingReply = false
+                    self.replyState = .idle
                     self.messages.append(ChatMessage(sender: .assistant, text: reply.assistantMessage))
                     self.renderMessages(animated: true)
                 }
@@ -271,8 +273,7 @@ final class ChatViewController: UIViewController {
                 return
             } catch {
                 await MainActor.run {
-                    self.isAwaitingReply = false
-                    self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    self.replyState = .error((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
                     self.renderMessages(animated: true)
                 }
             }
