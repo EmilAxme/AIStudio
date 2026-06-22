@@ -1,5 +1,6 @@
 import UIKit
 import AVKit
+import Photos
 
 /// AI Video result screen: runs the real generation (start + status polling,
 /// loading orb) then shows the result with Share / Download actions. Error state
@@ -289,30 +290,40 @@ final class VideoResultViewController: UIViewController {
 
     /// Downloads the generated video and saves it to the photo library. The
     /// download, file write and photo-library save all run off the main actor.
+    /// The "Saved" alert reflects the real result of the photo-library write.
     private func saveResultToGallery() {
         guard let url = resultURL else { return }
         downloadButton.setLoading(true)
         downloadTask?.cancel()
         downloadTask = Task.detached { [weak self] in
-            let success: Bool
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 try Task.checkCancellation()
                 let temp = FileManager.default.temporaryDirectory
                     .appendingPathComponent("aistudio-\(UUID().uuidString).mp4")
                 try data.write(to: temp)
-                guard UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(temp.path) else {
-                    throw VideoGenerationError.noResultURL
-                }
-                UISaveVideoAtPathToSavedPhotosAlbum(temp.path, nil, nil, nil)
-                success = true
+                try Task.checkCancellation()
+                try await Self.saveVideoToPhotoLibrary(at: temp)
+                await self?.finishSave(success: true, message: nil)
             } catch is CancellationError {
                 await self?.setDownloadLoading(false)
-                return
             } catch {
-                success = false
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                await self?.finishSave(success: false, message: message)
             }
-            await self?.finishSave(success: success)
+        }
+    }
+
+    /// Requests add-only photo access and saves the file as a video asset,
+    /// surfacing the real authorization/save error. Independent of `self` so a
+    /// deallocated screen can't be reported as a successful save.
+    private static func saveVideoToPhotoLibrary(at fileURL: URL) async throws {
+        let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        guard status == .authorized || status == .limited else {
+            throw VideoSaveError.accessDenied
+        }
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetCreationRequest.creationRequestForAssetFromVideo(atFileURL: fileURL)
         }
     }
 
@@ -322,21 +333,33 @@ final class VideoResultViewController: UIViewController {
     }
 
     @MainActor
-    private func finishSave(success: Bool) {
+    private func finishSave(success: Bool, message: String?) {
         downloadButton.setLoading(false)
-        presentSavedAlert(success: success)
+        presentSavedAlert(success: success, message: message)
     }
 
     @MainActor
-    private func presentSavedAlert(success: Bool) {
+    private func presentSavedAlert(success: Bool, message: String?) {
         let alert = UIAlertController(
             title: success ? "Saved" : "Couldn't save",
             message: success
                 ? "The video has been saved to your gallery."
-                : "Couldn't download the video. Please try again.",
+                : (message ?? "Couldn't save the video. Please try again."),
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+}
+
+/// Errors surfaced when saving a generated video to the photo library.
+private enum VideoSaveError: LocalizedError {
+    case accessDenied
+
+    var errorDescription: String? {
+        switch self {
+        case .accessDenied:
+            return "Allow photo access in Settings to save videos to your gallery."
+        }
     }
 }
