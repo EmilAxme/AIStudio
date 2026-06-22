@@ -44,7 +44,7 @@ final class VideoTemplateCell: UICollectionViewCell {
     }
 }
 
-/// Full-bleed image card used in the horizontal template carousel on the Create screen.
+// MARK: - CarouselImageCell
 final class CarouselImageCell: UICollectionViewCell {
     static let reuseIdentifier = "CarouselImageCell"
     private let imageView = UIImageView()
@@ -69,7 +69,7 @@ final class CarouselImageCell: UICollectionViewCell {
     func configure(image: UIImage?) { imageView.image = image }
 }
 
-/// A "Format" / "Quality" row that opens a dropdown when tapped.
+// MARK: - FormOptionView
 final class FormOptionView: UIControl {
     private let titleLabel = UILabel()
     private let valueLabel = UILabel()
@@ -113,7 +113,7 @@ final class FormOptionView: UIControl {
     }
 }
 
-/// Upload slot: an outlined "+" tile that becomes the chosen photo with a remove (x) badge.
+// MARK: - UploadTile
 final class UploadTile: UIControl {
     private let gradient = GradientView(colors: AppColor.inputGradient)
     private let inner = UIView()
@@ -194,9 +194,6 @@ final class UploadTile: UIControl {
         }
     }
 
-    /// Taps near the half-overhanging remove badge go to it; every other in-bounds tap
-    /// belongs to the tile itself (a UIControl) - its decorative subviews must not
-    /// swallow the touch, or the "+" / re-pick action never fires.
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         if !removeButton.isHidden {
             let local = convert(point, to: removeButton)
@@ -212,7 +209,7 @@ final class UploadTile: UIControl {
     #endif
 }
 
-/// Tiny aspect-ratio glyph (outlined rounded rect) for the Format dropdown.
+// MARK: - RatioIconView
 final class RatioIconView: UIView {
     init(ratio: String) {
         super.init(frame: .zero)
@@ -227,7 +224,7 @@ final class RatioIconView: UIView {
         switch ratio {
         case "9:16": (w, h) = (12, 20)
         case "1:1": (w, h) = (17, 17)
-        default: (w, h) = (20, 12) // 16:9
+        default: (w, h) = (20, 12)
         }
         NSLayoutConstraint.activate([
             widthAnchor.constraint(equalToConstant: 22),
@@ -241,8 +238,7 @@ final class RatioIconView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
-/// Custom dropdown that drops under a tapped Format/Quality row. Added to the host
-/// view as a full-screen overlay; dismisses on selection or outside tap.
+// MARK: - DropdownOverlay
 final class DropdownOverlay: UIView {
     private let onSelect: (String) -> Void
     private let onDismiss: () -> Void

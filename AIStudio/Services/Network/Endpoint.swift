@@ -1,8 +1,6 @@
 import Foundation
 
-/// Describes a single backend request. Concrete endpoints (declared privately
-/// inside each domain service) provide the pieces; `urlRequest()` assembles the
-/// `URLRequest`, including the shared `Authorization` header.
+// MARK: - Endpoint
 protocol Endpoint {
     var baseURL: URL { get }
     var path: String { get }
@@ -18,8 +16,6 @@ extension Endpoint {
     var body: HTTPBody? { nil }
 
     func urlRequest() throws -> URLRequest {
-        // Append `path` to `baseURL` preserving the base's own path component
-        // (e.g. `.../dola` + `/chats/x/messages`).
         guard var components = URLComponents(
             url: baseURL.appendingPathComponent(path),
             resolvingAgainstBaseURL: false
@@ -33,7 +29,6 @@ extension Endpoint {
 
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        // Every request carries the bearer token (single source: AppConfig).
         request.setValue("Bearer \(AppConfig.API.bearerToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }

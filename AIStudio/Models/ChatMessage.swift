@@ -5,6 +5,7 @@ enum ChatMessageSender: String, Codable {
     case assistant
 }
 
+// MARK: - ChatMessage
 struct ChatMessage: Identifiable, Codable {
     let id: UUID
     let sender: ChatMessageSender

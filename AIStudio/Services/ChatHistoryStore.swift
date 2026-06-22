@@ -1,7 +1,6 @@
 import Foundation
 
-/// Persists AI Chat sessions locally (JSON in `UserDefaults`) so the history
-/// list survives relaunches. Injected via `AppServices`, not a global singleton.
+// MARK: - ChatHistoryStore
 final class ChatHistoryStore {
     private let key = "app.chat.sessions"
     private let defaults: UserDefaults
@@ -10,7 +9,6 @@ final class ChatHistoryStore {
         self.defaults = defaults
     }
 
-    /// All saved sessions, most recently updated first.
     func sessions() -> [ChatSession] {
         guard let data = defaults.data(forKey: key),
               let stored = try? JSONDecoder().decode([ChatSession].self, from: data) else {
@@ -23,7 +21,6 @@ final class ChatHistoryStore {
         sessions().first { $0.id == id }
     }
 
-    /// Inserts or updates a session by id.
     func save(_ session: ChatSession) {
         var all = sessions()
         if let index = all.firstIndex(where: { $0.id == session.id }) {

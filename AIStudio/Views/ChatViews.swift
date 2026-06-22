@@ -33,6 +33,7 @@ final class ChatBubbleView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
+// MARK: - AssistantMessageView
 final class AssistantMessageView: UIView {
     private let textLabel = UILabel()
 
@@ -73,9 +74,7 @@ final class AssistantMessageView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
-/// Loading state for an in-flight assistant reply - the Figma "AI's response"
-/// bubble (gradient lead dot + two grey dots), shown left-aligned at its natural
-/// size with a soft pulse to read as active.
+// MARK: - TypingIndicatorView
 final class TypingIndicatorView: UIView {
     private let imageView = UIImageView(image: UIImage(named: "typingIndicator"))
 
@@ -115,8 +114,7 @@ final class TypingIndicatorView: UIView {
     }
 }
 
-/// Visible error state for a failed reply: the human message plus a tap-to-retry
-/// affordance, in an assistant-aligned bubble.
+// MARK: - ChatErrorBubbleView
 final class ChatErrorBubbleView: UIControl {
     var onRetry: (() -> Void)?
 
@@ -161,8 +159,7 @@ final class ChatErrorBubbleView: UIControl {
     @objc private func retryTapped() { onRetry?() }
 }
 
-/// Builds the assistant body from a lightweight markup: lines, `•` bullets and
-/// `**bold**` lead-ins, mirroring the formatting in the reference design.
+// MARK: - ChatText
 enum ChatText {
     static func body(from text: String) -> NSAttributedString {
         let base = AppFont.font(16, .regular)
@@ -197,7 +194,7 @@ enum ChatText {
     }
 }
 
-/// Empty/start state for a new AI Chat: "Your AI assistant for anything".
+// MARK: - ChatEmptyStateView
 final class ChatEmptyStateView: UIView {
     init() {
         super.init(frame: .zero)
@@ -239,15 +236,13 @@ final class ChatEmptyStateView: UIView {
     required init?(coder: NSCoder) { nil }
 }
 
+// MARK: - ChatComposerView
 final class ChatComposerView: UIView {
-    /// Height of the visible input row above the home indicator (Figma: 88pt @ 844).
     static let barHeight: CGFloat = 88
 
     let textField = UITextField()
     var onSend: ((String) -> Void)?
 
-    /// Blocks sending while a reply is in flight (one request at a time). The
-    /// mic<->send morph still tracks the text; only the action is disabled.
     var isSendEnabled = true {
         didSet {
             guard isSendEnabled != oldValue else { return }
@@ -256,7 +251,6 @@ final class ChatComposerView: UIView {
         }
     }
 
-    // Trailing button: mic when empty, Send when there is text (animated swap).
     private let actionButton = UIControl()
     private let actionRing = UIView()
     private let actionGradient = GradientView(
@@ -294,8 +288,6 @@ final class ChatComposerView: UIView {
         setupActionButton()
 
         addSubviews(textField, download, actionButton)
-        // Content sits centered within the top `barHeight` band; the view itself
-        // extends below to cover the home-indicator area.
         NSLayoutConstraint.activate([
             textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
             textField.centerYAnchor.constraint(equalTo: topAnchor, constant: Self.barHeight / 2),
@@ -362,7 +354,6 @@ final class ChatComposerView: UIView {
         !(textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// Drives the morph between the outlined mic (empty) and the gradient Send (typing).
     private func applySendState(_ active: Bool, animated: Bool) {
         isSendState = active
         let setVisuals = {
@@ -408,17 +399,15 @@ final class ChatComposerView: UIView {
     }
 
     @objc private func sendTapped() {
-        guard isSendEnabled else { return }   // a reply is in flight; ignore the return key too
+        guard isSendEnabled else { return }
         let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !text.isEmpty else { return }   // empty == mic; no action yet
+        guard !text.isEmpty else { return }
         textField.text = nil
         applySendState(false, animated: true)
         onSend?(text)
     }
 
     #if DEBUG
-    /// Snapshot/QA helper: drops in demo text and runs the empty->send morph so the
-    /// transition can be captured on launch. Compiled out of Release builds.
     func runSendTransitionDemo(_ text: String = "Test message") {
         textField.text = text
         applySendState(true, animated: true)
@@ -436,6 +425,7 @@ final class ChatComposerView: UIView {
     }
 }
 
+// MARK: - UITextFieldDelegate
 extension ChatComposerView: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         sendTapped()

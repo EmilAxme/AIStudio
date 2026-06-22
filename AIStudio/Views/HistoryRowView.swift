@@ -1,6 +1,6 @@
 import UIKit
 
-/// A single history row: gradient glyph + title + timestamp on a translucent surface.
+// MARK: - HistoryRowView
 final class HistoryRowView: UIControl {
     init(item: HistoryItem) {
         super.init(frame: .zero)

@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - Layout
 enum Layout {
     static let horizontalInset: CGFloat = 16
     static let cardRadius: CGFloat = 20

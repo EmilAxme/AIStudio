@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - SceneDelegate
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
@@ -26,9 +27,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     #if DEBUG
-    /// Debug-only deep link used to launch the app straight into a given screen
-    /// (e.g. `-INITIAL_SCREEN chat`). Lets snapshots/QA reach any screen without
-    /// driving the UI; compiled out of Release builds.
     private func routeForUITestingIfNeeded(in nav: UINavigationController) {
         guard let screen = UserDefaults.standard.string(forKey: "INITIAL_SCREEN") else { return }
         switch screen {

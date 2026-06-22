@@ -36,6 +36,8 @@ final class HomeViewController: UIViewController {
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
+    // MARK: - Setup
+
     private func setupView() {
         view.backgroundColor = AppColor.background
         topGlow.translatesAutoresizingMaskIntoConstraints = false
@@ -132,6 +134,8 @@ final class HomeViewController: UIViewController {
         summaryCard.addTarget(self, action: #selector(showChat), for: .touchUpInside)
         featuredCard.addTarget(self, action: #selector(showVideoGallery), for: .touchUpInside)
     }
+
+    // MARK: - Actions
 
     @objc private func showChat() {
         navigationController?.pushViewController(ChatViewController(), animated: true)

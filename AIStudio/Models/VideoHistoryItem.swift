@@ -1,5 +1,6 @@
 import Foundation
 
+// MARK: - VideoHistoryItem
 struct VideoHistoryItem: Codable, Identifiable {
     let id: UUID
     let title: String

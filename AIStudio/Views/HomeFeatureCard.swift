@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - HomeFeatureCard
 final class HomeFeatureCard: UIControl {
     private let iconBackground = UIView()
     private let iconView = UIImageView()
@@ -116,10 +117,6 @@ final class HomeFeatureCard: UIControl {
 
     required init?(coder: NSCoder) { nil }
 
-    /// The whole card is one tap target. Its decorative subviews (icon background,
-    /// text stack, action pill) are interactive-by-default `UIView`s that would
-    /// otherwise swallow touches in their regions, making the card fire only in the
-    /// narrow gaps between them (felt like "needs many taps to register").
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard isUserInteractionEnabled, !isHidden, alpha > 0.01 else { return nil }
         return bounds.contains(point) ? self : nil

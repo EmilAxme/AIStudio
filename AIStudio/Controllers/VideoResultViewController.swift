@@ -2,9 +2,6 @@ import UIKit
 import AVKit
 import Photos
 
-/// AI Video result screen: runs the real generation (start + status polling,
-/// loading orb) then shows the result with Share / Download actions. Error state
-/// offers retry.
 final class VideoResultViewController: UIViewController {
     private let request: VideoRequest
     private let videoService: VideoGenerationServicing
@@ -14,8 +11,6 @@ final class VideoResultViewController: UIViewController {
     private var generationTask: Task<Void, Never>?
     private var downloadTask: Task<Void, Never>?
 
-    // Playback: kept so a failed/broken URL surfaces a clean error instead of a
-    // silent hang or crash, and so observers can be torn down.
     private var player: AVPlayer?
     private var playerItem: AVPlayerItem?
     private var playerStatusObserver: NSKeyValueObservation?
@@ -58,6 +53,8 @@ final class VideoResultViewController: UIViewController {
         generate()
     }
 
+    // MARK: - Setup
+
     private func setupView() {
         let header = ScreenHeaderView(title: "Result") { [weak self] in
             self?.navigationController?.popViewController(animated: true)
@@ -65,7 +62,6 @@ final class VideoResultViewController: UIViewController {
         header.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(header)
 
-        // Poster: the user's picked photo when available, else the template image.
         resultImageView.image = request.images.first ?? UIImage(named: request.imageName)
         resultImageView.contentMode = .scaleAspectFill
         resultImageView.layer.cornerRadius = 24
@@ -85,7 +81,6 @@ final class VideoResultViewController: UIViewController {
         play.translatesAutoresizingMaskIntoConstraints = false
         resultImageView.addSubview(play)
 
-        // Replace pill: restarts generation.
         let replace = UIControl()
         replace.backgroundColor = UIColor(white: 0.32, alpha: 0.55)
         replace.layer.cornerRadius = 20
@@ -138,7 +133,6 @@ final class VideoResultViewController: UIViewController {
         actionsStack.addArrangedSubview(shareButton)
         actionsStack.addArrangedSubview(downloadButton)
 
-        // Loading state (glossy generation orb image + text)
         orb.contentMode = .scaleAspectFit
         orb.translatesAutoresizingMaskIntoConstraints = false
         orb.widthAnchor.constraint(equalToConstant: 150).isActive = true
@@ -193,11 +187,11 @@ final class VideoResultViewController: UIViewController {
         generate()
     }
 
-    /// Starts a real generation: posts to PixVerse, polls status to completion,
-    /// then surfaces the result URL. Cancellable; drives the loading/error states.
+    // MARK: - Generation
+
     private func generate() {
         generationTask?.cancel()
-        downloadTask?.cancel()   // a Replace/retry invalidates any in-flight save
+        downloadTask?.cancel()
         resultURL = nil
         state = .loading
 
@@ -208,7 +202,6 @@ final class VideoResultViewController: UIViewController {
 
         generationTask = Task { [weak self] in
             guard let self else { return }
-            // JPEG-encode the source photo off the main actor.
             let imageData = await Task.detached { image?.jpegData(compressionQuality: 0.9) }.value
             let parameters = VideoGenerationParameters(
                 prompt: prompt, imageData: imageData, aspectRatio: aspectRatio, quality: quality
@@ -243,9 +236,6 @@ final class VideoResultViewController: UIViewController {
         )
     }
 
-    /// Plays the generated video (the real result URL) in a system player.
-    /// Observes item status so a broken/unplayable URL surfaces a clean error
-    /// instead of an endless spinner or a crash.
     @objc private func playResult() {
         guard let url = resultURL else { return }
         teardownPlayer()
@@ -277,8 +267,6 @@ final class VideoResultViewController: UIViewController {
         DispatchQueue.main.async { [weak self] in self?.handlePlaybackFailure(error) }
     }
 
-    /// Tears down the player, dismisses the system player if it's up, and shows a
-    /// readable error. Idempotent (status + failed-to-end can both fire).
     private func handlePlaybackFailure(_ error: Error?) {
         guard playerItem != nil else { return }
         teardownPlayer()
@@ -368,16 +356,12 @@ final class VideoResultViewController: UIViewController {
     }
 
     private func presentShareSheet() {
-        // Share the real generated video URL when available, else the poster image.
         let items: [Any] = [resultURL as Any, resultImageView.image as Any].compactMap { $0 }
         guard !items.isEmpty else { return }
         let sheet = UIActivityViewController(activityItems: [items.first!], applicationActivities: nil)
         present(sheet, animated: true)
     }
 
-    /// Downloads the generated video and saves it to the photo library. The
-    /// download, file write and photo-library save all run off the main actor.
-    /// The "Saved" alert reflects the real result of the photo-library write.
     private func saveResultToGallery() {
         guard let url = resultURL else { return }
         downloadButton.setLoading(true)
@@ -401,9 +385,6 @@ final class VideoResultViewController: UIViewController {
         }
     }
 
-    /// Requests add-only photo access and saves the file as a video asset,
-    /// surfacing the real authorization/save error. Independent of `self` so a
-    /// deallocated screen can't be reported as a successful save.
     private static func saveVideoToPhotoLibrary(at fileURL: URL) async throws {
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else {
@@ -439,7 +420,6 @@ final class VideoResultViewController: UIViewController {
     }
 }
 
-/// Errors surfaced when saving a generated video to the photo library.
 private enum VideoSaveError: LocalizedError {
     case accessDenied
 

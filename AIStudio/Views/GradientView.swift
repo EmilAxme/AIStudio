@@ -27,7 +27,7 @@ class GradientView: UIView {
     }
 }
 
-/// Soft radial halo used behind the hero areas on Home and Paywall.
+// MARK: - GlowView
 final class GlowView: GradientView {
     init(tint: UIColor = UIColor(hex: 0x4B2E59), intensity: CGFloat = 0.55) {
         super.init(
@@ -45,7 +45,7 @@ final class GlowView: GradientView {
     required init?(coder: NSCoder) { nil }
 }
 
-/// Rounded container with a 1pt gradient (or hairline) border and a solid fill.
+// MARK: - GradientBorderView
 final class GradientBorderView: UIView {
     private let gradient: GradientView
     private let contentView = UIView()

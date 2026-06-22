@@ -10,28 +10,17 @@ final class ChatViewController: UIViewController {
 
     private let chatService: ChatServicing
     private let history: ChatHistoryStore
-    /// Stable id + creation time for this conversation's saved history entry.
     private let sessionID: UUID
     private let createdAt: Date
-    /// Only persist to history once the user has actually sent a message here.
     private var userDidSend = false
-    /// Client-generated chat id; the backend creates the chat on first send and
-    /// echoes it back, so the whole conversation reuses this id.
     private var chatID = UUID().uuidString
-    /// Pending assistant reply: .loading shows the typing bubble, .error shows the
-    /// error bubble, .idle/.success show neither. While loading, the composer's
-    /// send action is disabled so a rapid double-send can't orphan a message.
     private var replyState: ViewState = .idle {
         didSet { composer.isSendEnabled = (replyState != .loading) }
     }
     private var lastUserText: String?
     private var replyTask: Task<Void, Never>?
 
-    /// How many `messages` are already materialized in `messagesStack`. The list
-    /// only grows by appends, so we add the delta instead of rebuilding the stack
-    /// (a full teardown made every bubble re-inflate from the corner on each send).
     private var renderedMessageCount = 0
-    /// The trailing typing/error bubble, if shown (replaced in place, not stacked).
     private weak var statusView: UIView?
 
     init(startEmpty: Bool = false, chatService: ChatServicing = AppServices.chat, history: ChatHistoryStore = AppServices.chatHistory) {
@@ -43,7 +32,6 @@ final class ChatViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
-    /// Reopens a saved conversation from the history list.
     init(session: ChatSession, chatService: ChatServicing = AppServices.chat, history: ChatHistoryStore = AppServices.chatHistory) {
         self.chatService = chatService
         self.history = history
@@ -90,19 +78,19 @@ final class ChatViewController: UIViewController {
                 self?.composer.runSendTransitionDemo()
             }
         }
-        // Integration self-test: auto-send one message to exercise the live API.
         if UserDefaults.standard.bool(forKey: "SELFTEST_CHAT") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.send(text: "Test message")
             }
         }
-        // Snapshot helper: hold the typing indicator on screen.
         if UserDefaults.standard.bool(forKey: "TYPING_DEMO") {
             replyState = .loading
             renderMessages(animated: false)
         }
     }
     #endif
+
+    // MARK: - Setup
 
     private func setupHeader() {
         header.backgroundColor = UIColor(hex: 0x130E16)
@@ -203,12 +191,7 @@ final class ChatViewController: UIViewController {
         NSLayoutConstraint.activate([
             composer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             composer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            // Bottom extends under the home indicator (covered by the bar).
             composer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            // The 88pt bar sits just above the keyboard. `keyboardLayoutGuide` tracks
-            // the keyboard automatically and, when it's hidden, aligns to the bottom
-            // safe area - so the resting position matches the Figma exactly, and the
-            // bar (and the messages above it) rise with the keyboard.
             composer.topAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -ChatComposerView.barHeight)
         ])
     }
@@ -220,11 +203,9 @@ final class ChatViewController: UIViewController {
         emptyStateView.isHidden = hasContent
         scrollView.isHidden = !hasContent
 
-        // Drop the trailing typing/error bubble so any new messages append in order.
         statusView?.removeFromSuperview()
         statusView = nil
 
-        // Append only the messages not yet on screen; existing bubbles stay put.
         while renderedMessageCount < messages.count {
             let bubble = messageBubble(for: messages[renderedMessageCount])
             messagesStack.addArrangedSubview(bubble)
@@ -232,7 +213,6 @@ final class ChatViewController: UIViewController {
             renderedMessageCount += 1
         }
 
-        // Re-attach the trailing status bubble (typing while loading, error on failure).
         if isAwaiting {
             let typing = assistantAligned(TypingIndicatorView())
             messagesStack.addArrangedSubview(typing)
@@ -259,8 +239,6 @@ final class ChatViewController: UIViewController {
         }
     }
 
-    /// Fades and slides in only the newly inserted bubble; the rest of the
-    /// conversation is left untouched (no full-stack relayout).
     private func animateInsertion(of bubble: UIView) {
         bubble.alpha = 0
         bubble.transform = CGAffineTransform(translationX: 0, y: 10)
@@ -270,7 +248,6 @@ final class ChatViewController: UIViewController {
         }
     }
 
-    /// User bubble: hugs the trailing edge, leaving a gap on the left.
     private func userAligned(_ content: UIView) -> UIView {
         let container = UIView()
         content.translatesAutoresizingMaskIntoConstraints = false
@@ -284,7 +261,6 @@ final class ChatViewController: UIViewController {
         return container
     }
 
-    /// Assistant content: inset 12pt on both sides (matches the reference).
     private func assistantAligned(_ content: UIView) -> UIView {
         let container = UIView()
         content.translatesAutoresizingMaskIntoConstraints = false
@@ -298,6 +274,8 @@ final class ChatViewController: UIViewController {
         return container
     }
 
+    // MARK: - Sending
+
     private func send(text: String) {
         userDidSend = true
         messages.append(ChatMessage(sender: .user, text: text))
@@ -306,7 +284,6 @@ final class ChatViewController: UIViewController {
         requestReply(for: text)
     }
 
-    /// Saves this conversation to history (once the user has contributed).
     private func persistSession() {
         guard userDidSend else { return }
         history.save(ChatSession(
@@ -323,7 +300,6 @@ final class ChatViewController: UIViewController {
         requestReply(for: text)
     }
 
-    /// Sends `text` to the live API, driving the loading -> success/error states.
     private func requestReply(for text: String) {
         replyTask?.cancel()
         replyState = .loading
@@ -353,7 +329,6 @@ final class ChatViewController: UIViewController {
     }
 
     private func scrollToBottom(animated: Bool) {
-        // Defer so the just-added bubble is laid out and contentSize is current.
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.scrollView.layoutIfNeeded()

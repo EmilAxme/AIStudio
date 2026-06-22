@@ -13,8 +13,6 @@ final class PaywallViewController: UIViewController {
     private let subscription: SubscriptionService
     private var didUnlock = false
 
-    /// Invoked after the user successfully unlocks premium (purchase or restore),
-    /// so the gated action that opened this paywall can proceed without a relaunch.
     var onUnlocked: (() -> Void)?
 
     init(subscription: SubscriptionService = AppServices.subscription) {
@@ -33,9 +31,6 @@ final class PaywallViewController: UIViewController {
         setupView()
         updateSelection()
         loadProducts()
-        // Unlock when the status becomes premium from ANY source: a synchronous
-        // purchase, a restore, or a deferred/Ask-to-Buy transaction that confirms
-        // after the purchase call returned.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(subscriptionStatusChanged),
@@ -49,6 +44,8 @@ final class PaywallViewController: UIViewController {
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+
+    // MARK: - Setup
 
     private func setupView() {
         topGlow.translatesAutoresizingMaskIntoConstraints = false
@@ -108,7 +105,7 @@ final class PaywallViewController: UIViewController {
             if text == "Restore Purchases" {
                 label.isUserInteractionEnabled = true
                 label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(restoreTapped)))
-                restoreLabel.text = text  // keep a typed reference for loading state
+                restoreLabel.text = text
             }
             footer.addArrangedSubview(label)
         }
@@ -173,9 +170,6 @@ final class PaywallViewController: UIViewController {
         return view
     }
 
-    // MARK: - Products
-
-    /// Loads the `main` paywall and binds real products to the two plan rows.
     private func loadProducts() {
         unlock.setLoading(true)
         Task { [weak self] in
@@ -184,11 +178,9 @@ final class PaywallViewController: UIViewController {
             await MainActor.run {
                 self.unlock.setLoading(false)
                 guard let paywall else {
-                    // Paywall didn't load at all: no network, or the SDK couldn't reach Apphud.
                     self.presentLoadFailure()
                     return
                 }
-                // Paywall loaded; keep only products StoreKit actually resolved (have a price).
                 let resolved = paywall.products.filter { $0.skProduct != nil }
                 guard !resolved.isEmpty else {
                     #if DEBUG
@@ -203,10 +195,6 @@ final class PaywallViewController: UIViewController {
         }
     }
 
-    /// Binds products to the two rows. Prefers a natural year+month split; when the
-    /// paywall has a single product (or two sharing a period) it assigns distinct
-    /// products by source order and hides the unused row - never binding the same
-    /// product to both rows (which would show duplicate prices / a mislabeled plan).
     private func bind(products: [ApphudProduct]) {
         let yearlyByPeriod = products.first { $0.skProduct?.subscriptionPeriod?.unit == .year }
         let monthlyByPeriod = products.first { $0.skProduct?.subscriptionPeriod?.unit == .month }
@@ -224,10 +212,8 @@ final class PaywallViewController: UIViewController {
         configureRow(yearly, with: resolvedYearly, fallbackName: "Year")
         configureRow(monthly, with: resolvedMonthly, fallbackName: "Month")
 
-        // Savings badge: computed from the two plans' per-week prices, not hard-coded.
         yearly.setSaveBadge(percent: Self.savingsPercent(cheaper: resolvedYearly, baseline: resolvedMonthly))
 
-        // Default the selection to a visible row that actually has a product.
         if selectedPlanView.product == nil || selectedPlanView.isHidden {
             selectedPlanView = resolvedYearly != nil ? yearly : monthly
         }
@@ -244,8 +230,6 @@ final class PaywallViewController: UIViewController {
         }
     }
 
-    /// Percentage the `cheaper` plan saves per week vs `baseline`, rounded.
-    /// Returns nil unless both per-week prices are known and `cheaper` is actually cheaper.
     private static func savingsPercent(cheaper: ApphudProduct?, baseline: ApphudProduct?) -> Int? {
         guard let low = cheaper?.weeklyPriceValue, let high = baseline?.weeklyPriceValue,
               high.doubleValue > 0, low.doubleValue < high.doubleValue else { return nil }
@@ -253,7 +237,6 @@ final class PaywallViewController: UIViewController {
         return Int(saved.rounded())
     }
 
-    /// Names a plan from its real subscription period, falling back to the row's slot.
     private func planName(for product: ApphudProduct, fallback: String) -> String {
         switch product.skProduct?.subscriptionPeriod?.unit {
         case .year: return "Year"
@@ -264,7 +247,6 @@ final class PaywallViewController: UIViewController {
         }
     }
 
-    /// Couldn't reach the store / load the paywall (network or SDK).
     private func presentLoadFailure() {
         let alert = UIAlertController(
             title: "Couldn't load",
@@ -276,7 +258,6 @@ final class PaywallViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    /// Paywall loaded, but no products resolved from the store (ids not configured).
     private func presentProductsUnavailable() {
         let alert = UIAlertController(
             title: "Subscriptions unavailable",
@@ -288,8 +269,6 @@ final class PaywallViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    // MARK: - Selection
-
     private func updateSelection() {
         yearly.isSelected = selectedPlanView === yearly
         monthly.isSelected = selectedPlanView === monthly
@@ -298,7 +277,7 @@ final class PaywallViewController: UIViewController {
     @objc private func yearlyTapped() { selectedPlanView = yearly; updateSelection() }
     @objc private func monthlyTapped() { selectedPlanView = monthly; updateSelection() }
 
-    // MARK: - Purchase / Restore
+    // MARK: - Purchase
 
     @objc private func unlockTapped() {
         guard let product = selectedPlanView.product else {
@@ -313,9 +292,6 @@ final class PaywallViewController: UIViewController {
                 self.unlock.setLoading(false)
                 switch result {
                 case .success(let unlocked):
-                    // unlocked == false with no error means a deferred / Ask-to-Buy
-                    // purchase that needs approval; it will unlock live via the
-                    // statusDidChange observer once approved.
                     unlocked ? self.handleUnlocked() : self.presentPurchasePending()
                 case .failure(let error):
                     self.presentError(error)
@@ -341,9 +317,6 @@ final class PaywallViewController: UIViewController {
         }
     }
 
-    /// Unlock-without-relaunch: dismiss and let the opener run the gated action.
-    /// Idempotent so the multiple unlock triggers (purchase / restore / deferred
-    /// notification) can't dismiss twice or run the action twice.
     private func handleUnlocked() {
         guard !didUnlock else { return }
         didUnlock = true
@@ -351,8 +324,6 @@ final class PaywallViewController: UIViewController {
         dismiss(animated: true) { completion?() }
     }
 
-    /// A deferred / Ask-to-Buy purchase succeeded without an error but isn't active
-    /// yet - tell the user it's awaiting approval rather than leaving a silent no-op.
     private func presentPurchasePending() {
         let alert = UIAlertController(
             title: "Purchase pending approval",
@@ -364,7 +335,7 @@ final class PaywallViewController: UIViewController {
     }
 
     private func presentError(_ error: Error) {
-        guard !Self.isUserCancelled(error) else { return }   // user backed out; no alert
+        guard !Self.isUserCancelled(error) else { return }
         let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         let alert = UIAlertController(title: "Purchase not completed", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))

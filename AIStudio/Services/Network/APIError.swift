@@ -1,8 +1,6 @@
 import Foundation
 
-/// Network-layer errors with user-facing messages for the UI's error states.
-/// Transport and decoding stay distinct from HTTP-status failures so callers can
-/// react differently if needed.
+// MARK: - APIError
 enum APIError: LocalizedError {
     case invalidRequest
     case invalidResponse

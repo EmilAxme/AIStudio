@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - GradientButton
 final class GradientButton: UIButton {
     private let gradientView = GradientView(
         colors: AppColor.inputGradient,

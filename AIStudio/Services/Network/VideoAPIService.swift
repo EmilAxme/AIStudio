@@ -1,17 +1,10 @@
 import Foundation
 
-/// Inputs for one video generation, mapped from the Create screen.
 struct VideoGenerationParameters {
-    /// Text prompt describing the desired motion/scene (template title is used
-    /// when the user hasn't typed one).
     let prompt: String
-    /// Source image. When present -> `image2video`; when `nil` -> `text2video`.
     let imageData: Data?
-    /// UI aspect ratio (`"16:9"`, `"9:16"`, `"1:1"`) - used by `text2video`.
     let aspectRatio: String
-    /// UI quality label (`"540p"`, `"720p"`, `"1080p"`, `"4K"`).
     let quality: String
-    /// Clip length in seconds (PixVerse accepts 1-10).
     let durationSeconds: Int
 
     init(prompt: String, imageData: Data?, aspectRatio: String, quality: String, durationSeconds: Int = 5) {
@@ -23,6 +16,7 @@ struct VideoGenerationParameters {
     }
 }
 
+// MARK: - VideoGenerationError
 enum VideoGenerationError: LocalizedError {
     case failed
     case timedOut
@@ -40,18 +34,16 @@ enum VideoGenerationError: LocalizedError {
     }
 }
 
+// MARK: - VideoGenerationServicing
 protocol VideoGenerationServicing {
-    /// Starts generation and polls status until a result URL is ready.
-    /// Cooperatively cancellable: throws `CancellationError` if the surrounding
-    /// `Task` is cancelled between polls.
     func generate(_ parameters: VideoGenerationParameters) async throws -> URL
 }
 
+// MARK: - VideoAPIService
 final class VideoAPIService: VideoGenerationServicing {
     private let network: NetworkService
     private let userProvider: UserIdentifierProviding
 
-    /// Polling cadence and ceiling (~2 min @ 2s).
     private let pollInterval: UInt64 = 2 * 1_000_000_000
     private let maxPolls = 60
 
@@ -84,13 +76,11 @@ final class VideoAPIService: VideoGenerationServicing {
             if let urlString = status.videoUrl, let url = URL(string: urlString) {
                 return url
             }
-            // Still processing - wait, then poll again.
             try await Task.sleep(nanoseconds: pollInterval)
         }
         throw VideoGenerationError.timedOut
     }
 
-    /// Maps a UI quality label to a PixVerse-supported value (max is 1080p).
     private static func apiQuality(_ label: String) -> String {
         switch label.lowercased() {
         case "360p": return "360p"
@@ -100,8 +90,6 @@ final class VideoAPIService: VideoGenerationServicing {
         default: return "1080p"
         }
     }
-
-    // MARK: - Endpoints
 
     private enum VideoEndpoint: Endpoint {
         case text2video(VideoGenerationParameters, userID: String)
@@ -166,8 +154,6 @@ final class VideoAPIService: VideoGenerationServicing {
             }
         }
     }
-
-    // MARK: - DTOs
 
     private struct PixverseT2vResponse: Decodable {
         let videoId: Int

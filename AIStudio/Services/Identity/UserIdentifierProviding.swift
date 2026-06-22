@@ -1,14 +1,11 @@
 import Foundation
 import ApphudSDK
 
-/// Supplies the `user_id` sent with every API request. Abstracted behind a
-/// protocol so the source (Apphud / device / a test stub) can be swapped via DI
-/// without touching the networking services.
 protocol UserIdentifierProviding {
     var userID: String { get }
 }
 
-/// Backend `user_id` constraints: 1-36 chars, `^[A-Za-z0-9._:-]+$`.
+// MARK: - UserIdentifierSanitizer
 enum UserIdentifierSanitizer {
     private static let allowed = Set(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._:-"
@@ -19,11 +16,7 @@ enum UserIdentifierSanitizer {
     }
 }
 
-/// Primary provider: the Apphud user id (stable, persisted by the SDK).
-///
-/// `Apphud.userID()` is `@MainActor`, but our network calls run off the main
-/// actor - so we cache the value (primed once on launch) and read the cache.
-/// Falls back to a stable device UUID if Apphud's id is empty.
+// MARK: - ApphudUserIdentifierProvider
 final class ApphudUserIdentifierProvider: UserIdentifierProviding {
     private let fallback: UserIdentifierProviding
     private let lock = NSLock()
@@ -33,7 +26,6 @@ final class ApphudUserIdentifierProvider: UserIdentifierProviding {
         self.fallback = fallback
     }
 
-    /// Capture Apphud's id on the main actor. Call once after `Apphud.start`.
     @MainActor func refresh() {
         let id = UserIdentifierSanitizer.sanitize(Apphud.userID())
         lock.lock(); cached = id.isEmpty ? nil : id; lock.unlock()
@@ -53,7 +45,7 @@ final class ApphudUserIdentifierProvider: UserIdentifierProviding {
     }
 }
 
-/// Fallback provider: a stable UUID persisted in `UserDefaults`.
+// MARK: - DeviceUserIdentifierProvider
 struct DeviceUserIdentifierProvider: UserIdentifierProviding {
     private static let key = "app.identity.deviceUserID"
 

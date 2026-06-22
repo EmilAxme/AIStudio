@@ -5,8 +5,7 @@ protocol NetworkService {
     func send<T: Decodable>(_ endpoint: Endpoint, as type: T.Type) async throws -> T
 }
 
-/// `URLSession`-backed implementation. Maps status codes to `APIError`, decodes
-/// 2xx bodies (snake_case -> camelCase), and logs request/response only in DEBUG.
+// MARK: - URLSessionNetworkService
 final class URLSessionNetworkService: NetworkService {
     private let session: URLSession
     private let decoder: JSONDecoder
@@ -28,7 +27,6 @@ final class URLSessionNetworkService: NetworkService {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            // No HTTP response at all -> transport failure (offline, DNS, timeout).
             throw APIError.transport(error)
         }
 
@@ -51,8 +49,6 @@ final class URLSessionNetworkService: NetworkService {
         }
     }
 
-    /// Best-effort extraction of a human message from FastAPI error bodies
-    /// (`{"detail": "..."}` or `{"detail": [{"msg": "..."}]}`).
     private static func serverMessage(from data: Data) -> String? {
         guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return nil
@@ -64,8 +60,6 @@ final class URLSessionNetworkService: NetworkService {
         }
         return nil
     }
-
-    // MARK: - Logging (DEBUG only)
 
     private func logRequest(_ request: URLRequest) {
         #if DEBUG

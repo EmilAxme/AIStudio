@@ -1,6 +1,6 @@
 import UIKit
 
-/// Reusable top bar: back chevron on the left, centered title. 44pt tall.
+// MARK: - ScreenHeaderView
 final class ScreenHeaderView: UIView {
     private let onBack: () -> Void
 

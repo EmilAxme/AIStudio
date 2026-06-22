@@ -2,24 +2,16 @@ import Foundation
 import StoreKit
 import ApphudSDK
 
-/// Read-only premium gate used by feature screens for DI/testability.
 protocol SubscriptionServicing: AnyObject {
     var isPremium: Bool { get }
 }
 
-/// Single source of truth for subscription state and purchases, backed by Apphud.
-///
-/// Posts `statusDidChange` (object: `Bool` isPremium) after a purchase/restore or
-/// when Apphud reports an update, so gated screens unlock live - no relaunch.
+// MARK: - SubscriptionService
 final class SubscriptionService: NSObject, SubscriptionServicing {
     static let statusDidChange = Notification.Name("SubscriptionService.statusDidChange")
 
     var isPremium: Bool { Apphud.hasActiveSubscription() }
 
-    // MARK: - Paywall
-
-    /// Loads the configured paywall (`AppConfig.Apphud.paywallID`) via placements
-    /// and marks it shown for Apphud analytics. Returns `nil` if it can't load.
     func loadPaywall() async -> ApphudPaywall? {
         let placements = await Apphud.placements()
         let paywalls = placements.compactMap { $0.paywall }
@@ -35,8 +27,6 @@ final class SubscriptionService: NSObject, SubscriptionServicing {
         }
         return paywall
     }
-
-    // MARK: - Purchase / Restore
 
     @MainActor
     func purchase(_ product: ApphudProduct) async -> Result<Bool, Error> {
@@ -66,8 +56,7 @@ final class SubscriptionService: NSObject, SubscriptionServicing {
     }
 }
 
-// MARK: - ApphudDelegate (live subscription updates)
-
+// MARK: - ApphudDelegate
 extension SubscriptionService: ApphudDelegate {
     func apphudSubscriptionsUpdated(_ subscriptions: [ApphudSubscription]) {
         broadcastStatus()
@@ -78,10 +67,7 @@ extension SubscriptionService: ApphudDelegate {
     }
 }
 
-// MARK: - Price formatting (from StoreKit product, never hard-coded)
-
 extension ApphudProduct {
-    /// Localized price string, e.g. "$69.99" - from the StoreKit product.
     var displayPriceString: String? {
         guard let sk = skProduct else { return nil }
         let formatter = NumberFormatter()
@@ -90,7 +76,6 @@ extension ApphudProduct {
         return formatter.string(from: sk.price)
     }
 
-    /// Localized subscription period, e.g. "year" / "3 months".
     var displayPeriodString: String? {
         guard let period = skProduct?.subscriptionPeriod else { return nil }
         let unitName: String
@@ -108,7 +93,6 @@ extension ApphudProduct {
         skProduct?.introductoryPrice?.paymentMode == .freeTrial
     }
 
-    /// Per-week price (numeric) derived from the product's total price and period.
     var weeklyPriceValue: NSDecimalNumber? {
         guard let sk = skProduct, let period = sk.subscriptionPeriod else { return nil }
         let weeksPerUnit: Double
@@ -124,7 +108,6 @@ extension ApphudProduct {
         return sk.price.dividing(by: NSDecimalNumber(value: totalWeeks))
     }
 
-    /// Localized per-week price, e.g. a $69.99/year product becomes "$1.35".
     var weeklyPriceString: String? {
         guard let weekly = weeklyPriceValue, let locale = skProduct?.priceLocale else { return nil }
         let formatter = NumberFormatter()

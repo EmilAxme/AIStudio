@@ -1,6 +1,7 @@
 import UIKit
 import ApphudSDK
 
+// MARK: - PlanOptionView
 final class PlanOptionView: UIControl {
     private let borderGradient = GradientView(colors: AppColor.inputGradient)
     private let inner = UIView()
@@ -14,7 +15,6 @@ final class PlanOptionView: UIControl {
         didSet { updateAppearance() }
     }
 
-    /// The product this row represents, set once the paywall loads.
     var product: ApphudProduct?
 
     init(placeholderTitle: String) {
@@ -70,8 +70,6 @@ final class PlanOptionView: UIControl {
 
     required init?(coder: NSCoder) { nil }
 
-    /// Populates the row from a loaded product: title = plan + per-week price,
-    /// detail = full localized price. All amounts come from StoreKit.
     func configure(product: ApphudProduct, planName: String) {
         self.product = product
         let trial = product.hasFreeTrial ? " · Free trial" : ""
@@ -83,7 +81,6 @@ final class PlanOptionView: UIControl {
         detailLabel.text = product.displayPriceString ?? " "
     }
 
-    /// Shows "SAVE n%" when a savings figure is available, otherwise hides the badge.
     func setSaveBadge(percent: Int?) {
         if let percent, percent > 0 {
             badgeLabel.text = "SAVE \(percent)%"

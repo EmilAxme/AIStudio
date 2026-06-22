@@ -1,8 +1,6 @@
 import UIKit
 import AVKit
 
-/// Generic history list (AI Chat / AI Video) - dated sections of `HistoryRowView`,
-/// with an empty state. Reused by both modules via the factory helpers below.
 final class HistoryViewController: UIViewController {
     private let navTitle: String
     private let sections: [HistorySection]
@@ -11,9 +9,7 @@ final class HistoryViewController: UIViewController {
     private let emptyTitle: String
     private let emptySubtitle: String
 
-    /// Invoked when a list row is tapped (chat history uses it to reopen a chat).
     var onSelectItem: ((HistoryItem) -> Void)?
-    /// Invoked when a grid thumbnail is tapped (video history uses it to play).
     var onSelectGridIndex: ((Int) -> Void)?
 
     init(title: String, sections: [HistorySection], gridImages: [UIImage]? = nil, emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
@@ -54,7 +50,8 @@ final class HistoryViewController: UIViewController {
         }
     }
 
-    /// Two-column masonry of generated thumbnails (AI Video History).
+    // MARK: - Layout
+
     private func setupGrid(below header: UIView, images: [UIImage]) {
         let scrollView = UIScrollView()
         scrollView.alwaysBounceVertical = true
@@ -69,7 +66,6 @@ final class HistoryViewController: UIViewController {
             column.distribution = .fill
         }
 
-        // Staggered heights give the masonry feel.
         let ratios: [CGFloat] = [1.32, 1.0, 1.46, 1.12]
         for (index, image) in images.enumerated() {
             let imageView = UIImageView(image: image)
@@ -187,9 +183,6 @@ final class HistoryViewController: UIViewController {
         ])
     }
 
-    // MARK: - Factories
-
-    /// Groups saved chat sessions into dated sections (Today / Yesterday / date).
     private static func buildSections(from sessions: [ChatSession]) -> [HistorySection] {
         guard !sessions.isEmpty else { return [] }
         let calendar = Calendar.current
@@ -208,7 +201,7 @@ final class HistoryViewController: UIViewController {
 
         var order: [String] = []
         var grouped: [String: [HistoryItem]] = [:]
-        for session in sessions {   // already sorted newest-first by the store
+        for session in sessions {
             let key = bucket(for: session.updatedAt)
             if grouped[key] == nil { order.append(key) }
             grouped[key, default: []].append(HistoryItem(
@@ -219,6 +212,8 @@ final class HistoryViewController: UIViewController {
         }
         return order.map { HistorySection(title: $0, items: grouped[$0] ?? []) }
     }
+
+    // MARK: - Factories
 
     static func chat(empty: Bool = false) -> HistoryViewController {
         let store = AppServices.chatHistory

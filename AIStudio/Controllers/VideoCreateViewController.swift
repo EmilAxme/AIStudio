@@ -7,6 +7,7 @@ struct VideoTemplate {
     let requiredPhotos: Int
 }
 
+// MARK: - VideoCreateViewController
 final class VideoCreateViewController: UIViewController {
     private let templates: [VideoTemplate] = [
         VideoTemplate(title: "Clay Fool", imageName: "ClayFool", requiredPhotos: 1),
@@ -25,8 +26,6 @@ final class VideoCreateViewController: UIViewController {
     private var selectedImages: [UIImage?] = []
     private var pendingTileIndex = 0
     private var hasGrantedAccess = false
-    /// Set when Create opened the paywall; lets a deferred/Ask-to-Buy purchase
-    /// approved after the paywall was dismissed resume on return to this screen.
     private var pendingGatedCreate = false
 
     private let subscription: SubscriptionServicing
@@ -41,7 +40,6 @@ final class VideoCreateViewController: UIViewController {
 
     required init?(coder: NSCoder) { nil }
 
-    // Carousel
     private let carouselInset: CGFloat = 36
     private let carouselSpacing: CGFloat = 12
     private lazy var carousel: UICollectionView = {
@@ -167,8 +165,6 @@ final class VideoCreateViewController: UIViewController {
     private var carouselItemWidth: CGFloat { view.bounds.width - 2 * carouselInset }
     private var carouselPageWidth: CGFloat { carouselItemWidth + carouselSpacing }
 
-    // MARK: - Upload tiles
-
     private func rebuildTiles() {
         if selectedImages.count != currentTemplate.requiredPhotos {
             selectedImages = Array(repeating: nil, count: currentTemplate.requiredPhotos)
@@ -195,8 +191,6 @@ final class VideoCreateViewController: UIViewController {
         createButton.isEnabled = !selectedImages.isEmpty && selectedImages.allSatisfy { $0 != nil }
     }
 
-    // MARK: - Photo access + picker
-
     private func pickPhoto(forTile index: Int) {
         pendingTileIndex = index
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
@@ -207,7 +201,6 @@ final class VideoCreateViewController: UIViewController {
         }
     }
 
-    /// Priming alert shown every time until the user grants gallery access.
     private func presentAccessAlert() {
         let alert = UIAlertController(
             title: "Allow access to photos?",
@@ -241,8 +234,6 @@ final class VideoCreateViewController: UIViewController {
         updateCreateEnabled()
     }
 
-    // MARK: - Dropdowns
-
     @objc private func openFormat() { presentDropdown(for: format, options: formatOptions, showRatioIcon: true) { [weak self] in self?.format.setValue($0) } }
     @objc private func openQuality() { presentDropdown(for: quality, options: qualityOptions, showRatioIcon: false) { [weak self] in self?.quality.setValue($0) } }
 
@@ -262,12 +253,8 @@ final class VideoCreateViewController: UIViewController {
         view.addSubview(overlay)
     }
 
-    // MARK: - Create
-
     @objc private func createTapped() {
         guard createButton.isEnabled else { return }
-        // Premium gate: generation is locked behind a subscription. Without one we
-        // present the paywall and only proceed once the user unlocks (no relaunch).
         guard subscription.isPremium else {
             pendingGatedCreate = true
             presentPaywall { [weak self] in self?.resumePendingCreateIfUnlocked() }
@@ -276,9 +263,6 @@ final class VideoCreateViewController: UIViewController {
         proceedToResult()
     }
 
-    /// Resumes a create that was gated by the paywall, once premium is active and
-    /// the paywall is gone. Covers an Ask-to-Buy/deferred purchase approved after
-    /// the paywall was dismissed: returning here proceeds without another tap.
     private func resumePendingCreateIfUnlocked() {
         guard pendingGatedCreate, subscription.isPremium, presentedViewController == nil else { return }
         pendingGatedCreate = false
@@ -306,8 +290,7 @@ final class VideoCreateViewController: UIViewController {
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
 }
 
-// MARK: - Carousel
-
+// MARK: - UICollectionViewDataSource, UICollectionViewDelegateFlowLayout
 extension VideoCreateViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { templates.count }
 
@@ -345,6 +328,7 @@ extension VideoCreateViewController: UICollectionViewDataSource, UICollectionVie
     }
 }
 
+// MARK: - PHPickerViewControllerDelegate
 extension VideoCreateViewController: PHPickerViewControllerDelegate {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         let index = pendingTileIndex

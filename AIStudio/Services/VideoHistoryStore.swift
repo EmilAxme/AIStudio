@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - VideoHistoryStore
 final class VideoHistoryStore {
     private let key = "app.video.history"
     private let defaults: UserDefaults

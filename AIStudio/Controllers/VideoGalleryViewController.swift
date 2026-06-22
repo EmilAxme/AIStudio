@@ -173,6 +173,7 @@ final class VideoGalleryViewController: UIViewController {
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
 }
 
+// MARK: - UICollectionViewDataSource, UICollectionViewDelegate
 extension VideoGalleryViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { 12 }
 

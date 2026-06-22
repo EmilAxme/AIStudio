@@ -1,6 +1,5 @@
 import Foundation
 
-/// One entry in a history list (AI Chat / AI Video).
 struct HistoryItem {
     let id: UUID
     let title: String
@@ -13,7 +12,7 @@ struct HistoryItem {
     }
 }
 
-/// A dated group of history items ("Today", "Yesterday", ...).
+// MARK: - HistorySection
 struct HistorySection {
     let title: String
     let items: [HistoryItem]

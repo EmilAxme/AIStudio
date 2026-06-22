@@ -1,7 +1,5 @@
 import Foundation
 
-/// Request body in one of the formats the backend uses: JSON (chat),
-/// x-www-form-urlencoded (text2video), multipart (image2video).
 enum HTTPBody {
     case json(Encodable)
     case formURLEncoded([String: String])
@@ -15,7 +13,6 @@ enum HTTPBody {
         }
     }
 
-    /// JSON uses snake_case to match the backend.
     func encoded() throws -> Data {
         switch self {
         case .json(let value):
@@ -39,7 +36,7 @@ enum HTTPBody {
     }
 }
 
-/// Minimal `multipart/form-data` builder (text fields + one or more file parts).
+// MARK: - MultipartFormData
 struct MultipartFormData {
     let boundary: String
     private var parts = Data()

@@ -11,8 +11,8 @@ extension UIColor {
     }
 }
 
+// MARK: - AppColor
 enum AppColor {
-    // Surfaces (sampled from the @3x reference renders)
     static let background = UIColor(hex: 0x0B070E)
     static let surface = UIColor(hex: 0x1A141B)
     static let surfaceRaised = UIColor(hex: 0x211B22)
@@ -20,12 +20,10 @@ enum AppColor {
     static let field = UIColor(hex: 0x100B13)
     static let disabled = UIColor(hex: 0x1B171D)
 
-    // Text
     static let white = UIColor.white
     static let secondaryText = UIColor(hex: 0x8E8A93)
     static let mutedText = UIColor(hex: 0x6E6973)
 
-    // Brand gradient (Figma): 2-stop blue -> pink
     static let pink = UIColor(hex: 0xEB5B92)
     static let separator = UIColor.white.withAlphaComponent(0.30)
     static let hairline = UIColor.white.withAlphaComponent(0.10)

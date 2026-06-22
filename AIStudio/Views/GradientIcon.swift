@@ -1,13 +1,11 @@
 import UIKit
 
-/// An SF Symbol (or any template image) filled with a gradient by masking.
 final class GradientIconView: UIView {
     override class var layerClass: AnyClass { CAGradientLayer.self }
     private var gradientLayer: CAGradientLayer { layer as! CAGradientLayer }
     private let maskLayer = CALayer()
     private let iconImage: UIImage
 
-    /// Designated init - fill the given (template/alpha) image with a gradient.
     init(
         image: UIImage,
         colors: [UIColor] = AppColor.inputGradient,
@@ -24,7 +22,6 @@ final class GradientIconView: UIView {
         layer.mask = maskLayer
     }
 
-    /// Convenience - fill an asset image (e.g. the exported Figma icons).
     convenience init(
         imageName: String,
         colors: [UIColor] = AppColor.inputGradient,
@@ -35,7 +32,6 @@ final class GradientIconView: UIView {
         self.init(image: img, colors: colors, startPoint: startPoint, endPoint: endPoint)
     }
 
-    /// Convenience - fill an SF Symbol with a gradient (fallback when no asset).
     convenience init(
         symbol: String,
         pointSize: CGFloat,
@@ -60,7 +56,7 @@ final class GradientIconView: UIView {
     override var intrinsicContentSize: CGSize { iconImage.size }
 }
 
-/// A single-line label whose glyphs are filled with a horizontal gradient.
+// MARK: - GradientLabel
 final class GradientLabel: UIView {
     override class var layerClass: AnyClass { CAGradientLayer.self }
     private var gradientLayer: CAGradientLayer { layer as! CAGradientLayer }
@@ -87,7 +83,7 @@ final class GradientLabel: UIView {
     override var intrinsicContentSize: CGSize { label.intrinsicContentSize }
 }
 
-/// Multi-colour sparkle cluster used as the Home hero logo (Figma full-colour glyph).
+// MARK: - SparkleLogoView
 final class SparkleLogoView: UIView {
     init() {
         super.init(frame: .zero)
