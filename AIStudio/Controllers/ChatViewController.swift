@@ -13,8 +13,11 @@ final class ChatViewController: UIViewController {
     /// echoes it back, so the whole conversation reuses this id.
     private var chatID = UUID().uuidString
     /// Pending assistant reply: .loading shows the typing bubble, .error shows the
-    /// error bubble, .idle/.success show neither.
-    private var replyState: ViewState = .idle
+    /// error bubble, .idle/.success show neither. While loading, the composer's
+    /// send action is disabled so a rapid double-send can't orphan a message.
+    private var replyState: ViewState = .idle {
+        didSet { composer.isSendEnabled = (replyState != .loading) }
+    }
     private var lastUserText: String?
     private var replyTask: Task<Void, Never>?
 

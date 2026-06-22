@@ -246,6 +246,16 @@ final class ChatComposerView: UIView {
     let textField = UITextField()
     var onSend: ((String) -> Void)?
 
+    /// Blocks sending while a reply is in flight (one request at a time). The
+    /// mic<->send morph still tracks the text; only the action is disabled.
+    var isSendEnabled = true {
+        didSet {
+            guard isSendEnabled != oldValue else { return }
+            actionButton.isEnabled = isSendEnabled
+            UIView.animate(withDuration: 0.2) { self.actionButton.alpha = self.isSendEnabled ? 1 : 0.5 }
+        }
+    }
+
     // Trailing button: mic when empty, Send when there is text (animated swap).
     private let actionButton = UIControl()
     private let actionRing = UIView()
@@ -398,6 +408,7 @@ final class ChatComposerView: UIView {
     }
 
     @objc private func sendTapped() {
+        guard isSendEnabled else { return }   // a reply is in flight; ignore the return key too
         let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !text.isEmpty else { return }   // empty == mic; no action yet
         textField.text = nil
