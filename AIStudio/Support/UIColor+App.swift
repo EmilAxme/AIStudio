@@ -25,8 +25,7 @@ enum AppColor {
     static let secondaryText = UIColor(hex: 0x8E8A93)
     static let mutedText = UIColor(hex: 0x6E6973)
 
-    // Brand gradient (Figma): 2-stop blue → pink
-    static let blue = UIColor(hex: 0x98C6F7)
+    // Brand gradient (Figma): 2-stop blue -> pink
     static let lavender = UIColor(hex: 0xC0A8E6)
     static let pink = UIColor(hex: 0xEB5B92)
     static let separator = UIColor.white.withAlphaComponent(0.30)

@@ -118,7 +118,6 @@ final class UploadTile: UIControl {
     private let gradient = GradientView(colors: AppColor.inputGradient)
     private let inner = UIView()
     private let icon = UIImageView(image: UIImage(systemName: "plus"))
-    private let spinner = UIActivityIndicatorView(style: .medium)
     private let photoView = UIImageView()
     private let removeButton = UIButton(type: .system)
     var onRemove: (() -> Void)?
@@ -138,9 +137,6 @@ final class UploadTile: UIControl {
         icon.contentMode = .scaleAspectFit
         icon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .light)
         icon.translatesAutoresizingMaskIntoConstraints = false
-        spinner.color = AppColor.lavender
-        spinner.hidesWhenStopped = true
-        spinner.translatesAutoresizingMaskIntoConstraints = false
 
         photoView.contentMode = .scaleAspectFill
         photoView.layer.cornerRadius = 16
@@ -158,7 +154,7 @@ final class UploadTile: UIControl {
         removeButton.translatesAutoresizingMaskIntoConstraints = false
         removeButton.addTarget(self, action: #selector(removeTapped), for: .touchUpInside)
 
-        addSubviews(gradient, inner, icon, spinner, photoView, removeButton)
+        addSubviews(gradient, inner, icon, photoView, removeButton)
         gradient.pinToEdges(of: self)
         NSLayoutConstraint.activate([
             inner.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 1.5),
@@ -167,8 +163,6 @@ final class UploadTile: UIControl {
             inner.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -1.5),
             icon.centerXAnchor.constraint(equalTo: centerXAnchor),
             icon.centerYAnchor.constraint(equalTo: centerYAnchor),
-            spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
-            spinner.centerYAnchor.constraint(equalTo: centerYAnchor),
             photoView.leadingAnchor.constraint(equalTo: leadingAnchor),
             photoView.trailingAnchor.constraint(equalTo: trailingAnchor),
             photoView.topAnchor.constraint(equalTo: topAnchor),
@@ -182,13 +176,7 @@ final class UploadTile: UIControl {
 
     required init?(coder: NSCoder) { nil }
 
-    func setLoading(_ isLoading: Bool) {
-        icon.isHidden = isLoading || !photoView.isHidden
-        isLoading ? spinner.startAnimating() : spinner.stopAnimating()
-    }
-
     func setImage(_ image: UIImage?) {
-        spinner.stopAnimating()
         if let image {
             photoView.image = image
             photoView.isHidden = false

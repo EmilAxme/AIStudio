@@ -18,14 +18,3 @@ enum AppFont {
     static func semibold(_ size: CGFloat) -> UIFont { font(size, .semibold) }
     static func bold(_ size: CGFloat) -> UIFont { font(size, .bold) }
 }
-
-extension UIFont {
-    // Compatibility shim so existing call sites keep working — now backed by Inter.
-    enum App {
-        static func display(_ size: CGFloat) -> UIFont { AppFont.bold(size) }
-        static func title(_ size: CGFloat = 24) -> UIFont { AppFont.semibold(size) }
-        static func body(_ size: CGFloat = 17) -> UIFont { AppFont.regular(size) }
-        static func medium(_ size: CGFloat = 17) -> UIFont { AppFont.medium(size) }
-        static func bold(_ size: CGFloat = 17) -> UIFont { AppFont.bold(size) }
-    }
-}
