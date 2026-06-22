@@ -10,6 +10,7 @@ final class PaywallViewController: UIViewController {
     private var selectedPlanView: PlanOptionView
 
     private let subscription: SubscriptionService
+    private var didUnlock = false
 
     /// Invoked after the user successfully unlocks premium (purchase or restore),
     /// so the gated action that opened this paywall can proceed without a relaunch.
@@ -23,12 +24,27 @@ final class PaywallViewController: UIViewController {
 
     required init?(coder: NSCoder) { nil }
 
+    deinit { NotificationCenter.default.removeObserver(self) }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColor.background
         setupView()
         updateSelection()
         loadProducts()
+        // Unlock when the status becomes premium from ANY source: a synchronous
+        // purchase, a restore, or a deferred/Ask-to-Buy transaction that confirms
+        // after the purchase call returned.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(subscriptionStatusChanged),
+            name: SubscriptionService.statusDidChange,
+            object: nil
+        )
+    }
+
+    @objc private func subscriptionStatusChanged() {
+        if subscription.isPremium { handleUnlocked() }
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -290,7 +306,11 @@ final class PaywallViewController: UIViewController {
     }
 
     /// Unlock-without-relaunch: dismiss and let the opener run the gated action.
+    /// Idempotent so the multiple unlock triggers (purchase / restore / deferred
+    /// notification) can't dismiss twice or run the action twice.
     private func handleUnlocked() {
+        guard !didUnlock else { return }
+        didUnlock = true
         let completion = onUnlocked
         dismiss(animated: true) { completion?() }
     }
