@@ -15,13 +15,29 @@ final class SubscriptionService: NSObject, SubscriptionServicing {
     func loadPaywall() async -> ApphudPaywall? {
         let placements = await Apphud.placements()
         let paywalls = placements.compactMap { $0.paywall }
-        let paywall = placements.first(where: { $0.identifier == AppConfig.Apphud.paywallID })?.paywall
+        var paywall = placements.first(where: { $0.identifier == AppConfig.Apphud.paywallID })?.paywall
             ?? paywalls.first(where: { $0.identifier == AppConfig.Apphud.paywallID })
             ?? paywalls.first
+        if paywall == nil {
+            paywall = await loadFallbackPaywall()
+        }
         if let paywall {
             await MainActor.run { Apphud.paywallShown(paywall) }
         }
         return paywall
+    }
+
+    // When the Apphud backend is unreachable (no network / region), fall back to
+    // the bundled apphud_paywalls_fallback.json so the paywall still loads; the
+    // products resolve from StoreKit (the .storekit config / App Store Connect).
+    @MainActor
+    private func loadFallbackPaywall() async -> ApphudPaywall? {
+        await withCheckedContinuation { (continuation: CheckedContinuation<ApphudPaywall?, Never>) in
+            Apphud.loadFallbackPaywalls { paywalls, _ in
+                let paywall = paywalls?.first { $0.identifier == AppConfig.Apphud.paywallID } ?? paywalls?.first
+                continuation.resume(returning: paywall)
+            }
+        }
     }
 
     @MainActor

@@ -1,0 +1,26 @@
+{
+  "data": {
+    "results": [
+      {
+        "id": "fallback_main",
+        "identifier": "main",
+        "name": "Main",
+        "default": true,
+        "items": [
+          {
+            "id": "fallback_yearly",
+            "name": "Premium Yearly",
+            "store": "app_store",
+            "product_id": "com.labs.fviu.premium.yearly"
+          },
+          {
+            "id": "fallback_monthly",
+            "name": "Premium Monthly",
+            "store": "app_store",
+            "product_id": "com.labs.fviu.premium.monthly"
+          }
+        ]
+      }
+    ]
+  }
+}

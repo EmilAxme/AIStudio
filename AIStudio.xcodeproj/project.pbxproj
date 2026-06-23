@@ -11,6 +11,7 @@
 		060ED1C73B568B29EC249E1A /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEBEF5CD0DA2CE45FB2E44CF /* AppConfig.swift */; };
 		0FFA04339064749E9DDA5DD0 /* ApphudSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 4F295360097708190CE58361 /* ApphudSDK */; };
 		2D3F52155A13828A3D7BB69D /* VideoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399F0C0EA6B5D314EBA58521 /* VideoRequest.swift */; };
+		2E67E5ECEC734F544AF69B37 /* apphud_paywalls_fallback.json in Resources */ = {isa = PBXBuildFile; fileRef = B6F4769D96D1C0E3809CC937 /* apphud_paywalls_fallback.json */; };
 		308B077B42AB22AE42B151CC /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA531066FCD150AF9629CDD /* ChatViewController.swift */; };
 		3641C35A3D683A76DC430490 /* String+Localized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2346599414A193B9497F019F /* String+Localized.swift */; };
 		3E284489F52FD4A030ACF1EF /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4775C4FFCB209A386B2560A5 /* HomeViewController.swift */; };
@@ -93,6 +94,7 @@
 		A0A56B9AE9CAC1110C8C6857 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A81A812E2F1E960C0D6B9A00 /* VideoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViews.swift; sourceTree = "<group>"; };
 		A9EE9553070E9261F13BD90D /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		B6F4769D96D1C0E3809CC937 /* apphud_paywalls_fallback.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = apphud_paywalls_fallback.json; sourceTree = "<group>"; };
 		B7599558F741C3DFA6FCF8E1 /* ChatViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViews.swift; sourceTree = "<group>"; };
 		B778E0A14D67AC9245642BCD /* HomeFeatureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFeatureCard.swift; sourceTree = "<group>"; };
 		BAD067500660B597527B5C11 /* PaywallViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViews.swift; sourceTree = "<group>"; };
@@ -145,6 +147,7 @@
 			isa = PBXGroup;
 			children = (
 				42DF82BDE508151A8FC43E9F /* AIStudio.storekit */,
+				B6F4769D96D1C0E3809CC937 /* apphud_paywalls_fallback.json */,
 				02403E784169A9254D41935F /* Assets.xcassets */,
 				306FA028EB256700D55EC87A /* Fonts */,
 				F77DE04B15D7568EFFF3918A /* Localizable.strings */,
@@ -355,6 +358,7 @@
 				67954D789ED9291583439F93 /* Inter-Regular.ttf in Resources */,
 				BCA3FF1C92FB53E4AFB2D33C /* Inter-SemiBold.ttf in Resources */,
 				A60C922B13CCEE9649F8D74A /* Localizable.strings in Resources */,
+				2E67E5ECEC734F544AF69B37 /* apphud_paywalls_fallback.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
