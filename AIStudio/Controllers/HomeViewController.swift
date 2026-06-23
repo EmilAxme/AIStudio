@@ -12,19 +12,19 @@ final class HomeViewController: UIViewController {
     )
     private let askLabel = UILabel()
     private let featuredCard = HomeFeatureCard(
-        title: "Turn Photo\ninto Video".localized,
-        subtitle: "Instant  •  Templates".localized,
+        title: "Turn Photo\ninto Video",
+        subtitle: "Instant  •  Templates",
         symbol: "icImageToImage",
         isFeatured: true
     )
     private let writingCard = HomeFeatureCard(
-        title: "Fix & Improve\nWriting".localized,
-        subtitle: "Rewrite  •  Fix grammar".localized,
+        title: "Fix & Improve\nWriting",
+        subtitle: "Rewrite  •  Fix grammar",
         symbol: "icMagicPencil"
     )
     private let summaryCard = HomeFeatureCard(
-        title: "Understand\nFaster".localized,
-        subtitle: "Summarize  •  Key points".localized,
+        title: "Understand\nFaster",
+        subtitle: "Summarize  •  Key points",
         symbol: "icMortarboard"
     )
 
@@ -57,7 +57,7 @@ final class HomeViewController: UIViewController {
 
         sparkleLogo.translatesAutoresizingMaskIntoConstraints = false
 
-        titleLabel.text = "Your AI tools,\nready to go".localized
+        titleLabel.text = "Your AI tools,\nready to go"
         titleLabel.font = AppFont.font(28, .bold)
         titleLabel.textColor = .white
         titleLabel.textAlignment = .center
@@ -73,7 +73,7 @@ final class HomeViewController: UIViewController {
         askIcon.contentMode = .scaleAspectFit
         askIcon.translatesAutoresizingMaskIntoConstraints = false
         askIconBackground.addSubview(askIcon)
-        askLabel.text = "Ask anything...".localized
+        askLabel.text = "Ask anything..."
         askLabel.textColor = AppColor.secondaryText
         askLabel.font = AppFont.font(16, .regular)
         askLabel.translatesAutoresizingMaskIntoConstraints = false

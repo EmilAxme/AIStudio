@@ -198,8 +198,8 @@ final class HistoryViewController: UIViewController {
         dayFormatter.dateFormat = "MMMM d"
 
         func bucket(for date: Date) -> String {
-            if calendar.isDateInToday(date) { return "Today".localized }
-            if calendar.isDateInYesterday(date) { return "Yesterday".localized }
+            if calendar.isDateInToday(date) { return "Today" }
+            if calendar.isDateInYesterday(date) { return "Yesterday" }
             return dayFormatter.string(from: date)
         }
 
@@ -222,11 +222,11 @@ final class HistoryViewController: UIViewController {
     static func chat(empty: Bool = false) -> HistoryViewController {
         let store = AppServices.chatHistory
         let vc = HistoryViewController(
-            title: "AI Chat History".localized,
+            title: "AI Chat History",
             sections: empty ? [] : buildSections(from: store.sessions()),
             emptyIcon: "emptyChats",
-            emptyTitle: "No chats yet".localized,
-            emptySubtitle: "Your conversations will appear here".localized
+            emptyTitle: "No chats yet",
+            emptySubtitle: "Your conversations will appear here"
         )
         vc.onSelectItem = { [weak vc] item in
             guard let session = store.session(id: item.id) else { return }
@@ -240,12 +240,12 @@ final class HistoryViewController: UIViewController {
         let items = empty ? [] : store.items()
         let posters = items.map { store.poster(for: $0) ?? UIImage() }
         let vc = HistoryViewController(
-            title: "AI Video History".localized,
+            title: "AI Video History",
             sections: [],
             gridImages: items.isEmpty ? nil : posters,
             emptyIcon: "emptyVideos",
-            emptyTitle: "No videos yet".localized,
-            emptySubtitle: "Your generated videos will appear here".localized
+            emptyTitle: "No videos yet",
+            emptySubtitle: "Your generated videos will appear here"
         )
         vc.onSelectGridIndex = { [weak vc] index in
             guard items.indices.contains(index),

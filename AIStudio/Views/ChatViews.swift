@@ -124,7 +124,7 @@ final class ChatErrorBubbleView: UIControl {
         layer.cornerRadius = Layout.cardRadius
 
         let title = UILabel()
-        title.text = "Couldn't get a response".localized
+        title.text = "Couldn't get a response"
         title.font = AppFont.semibold(15)
         title.textColor = UIColor(hex: 0xEB5B92)
 
@@ -135,7 +135,7 @@ final class ChatErrorBubbleView: UIControl {
         body.numberOfLines = 0
 
         let retry = UILabel()
-        retry.text = "Tap to retry".localized
+        retry.text = "Tap to retry"
         retry.font = AppFont.medium(13)
         retry.textColor = AppColor.secondaryText
 
@@ -205,17 +205,17 @@ final class ChatEmptyStateView: UIView {
             l.textColor = .white
             return l
         }
-        let your = word("Your ".localized)
-        let accent = GradientLabel(text: "AI assistant".localized, font: AppFont.semibold(18))
+        let your = word("Your ")
+        let accent = GradientLabel(text: "AI assistant", font: AppFont.semibold(18))
         accent.translatesAutoresizingMaskIntoConstraints = false
         accent.setContentHuggingPriority(.required, for: .horizontal)
-        let rest = word(" for anything".localized)
+        let rest = word(" for anything")
         let titleRow = UIStackView(arrangedSubviews: [your, accent, rest])
         titleRow.axis = .horizontal
         titleRow.alignment = .center
 
         let subtitle = UILabel()
-        subtitle.text = "Ask questions, get answers, and explore ideas in seconds".localized
+        subtitle.text = "Ask questions, get answers, and explore ideas in seconds"
         subtitle.font = AppFont.regular(14)
         subtitle.textColor = AppColor.secondaryText
         subtitle.textAlignment = .center
@@ -272,11 +272,11 @@ final class ChatComposerView: UIView {
         layer.cornerRadius = 32
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
 
-        textField.placeholder = "How can I help you?".localized
+        textField.placeholder = "How can I help you?"
         textField.font = AppFont.regular(16)
         textField.textColor = .white
         textField.attributedPlaceholder = NSAttributedString(
-            string: "How can I help you?".localized,
+            string: "How can I help you?",
             attributes: [.foregroundColor: AppColor.mutedText]
         )
         textField.returnKeyType = .send

@@ -13,7 +13,6 @@
 		2D3F52155A13828A3D7BB69D /* VideoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399F0C0EA6B5D314EBA58521 /* VideoRequest.swift */; };
 		2E67E5ECEC734F544AF69B37 /* apphud_paywalls_fallback.json in Resources */ = {isa = PBXBuildFile; fileRef = B6F4769D96D1C0E3809CC937 /* apphud_paywalls_fallback.json */; };
 		308B077B42AB22AE42B151CC /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA531066FCD150AF9629CDD /* ChatViewController.swift */; };
-		3641C35A3D683A76DC430490 /* String+Localized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2346599414A193B9497F019F /* String+Localized.swift */; };
 		3E284489F52FD4A030ACF1EF /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4775C4FFCB209A386B2560A5 /* HomeViewController.swift */; };
 		4203993A8C9CDC652ECAA74A /* GradientIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E8DB987A3B9A4976C8171 /* GradientIcon.swift */; };
 		4A89914EDE02F74AF3E43B52 /* ScreenHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E39C83CA16B3BAC79A931E2 /* ScreenHeaderView.swift */; };
@@ -35,7 +34,6 @@
 		8FE6CE66FBBCBF2B3EE675FD /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EE9553070E9261F13BD90D /* NetworkService.swift */; };
 		955C4E94A6492230DCCA11A4 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F42502728C37F26C80CF6A4 /* SubscriptionService.swift */; };
 		9C65FAEDB2404FBF8F138F09 /* ChatViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7599558F741C3DFA6FCF8E1 /* ChatViews.swift */; };
-		A60C922B13CCEE9649F8D74A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F77DE04B15D7568EFFF3918A /* Localizable.strings */; };
 		A74575F9FB448F3261CDEE62 /* HistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233E049B2C8FB36DDB4E08F6 /* HistoryViewController.swift */; };
 		A84C736C1DF7AED502394949 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE86BC1303D66DB262621003 /* AppDelegate.swift */; };
 		B3C359C85686D543A0D1F287 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E43C42394D6FCA6BB37C00 /* PaywallViewController.swift */; };
@@ -66,9 +64,7 @@
 		16F7119819DCEA7231018DD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1BA531066FCD150AF9629CDD /* ChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		233E049B2C8FB36DDB4E08F6 /* HistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewController.swift; sourceTree = "<group>"; };
-		2346599414A193B9497F019F /* String+Localized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localized.swift"; sourceTree = "<group>"; };
 		25A3B1F914703A16EB77DB6A /* VideoCreateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCreateViewController.swift; sourceTree = "<group>"; };
-		26EA9FB38C7F6A64B009DC95 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		2D1BE4950FF6D52E142D9D0B /* ChatSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSession.swift; sourceTree = "<group>"; };
 		2DE248F5410BF3B3FFC8F7F0 /* ChatAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatAPIService.swift; sourceTree = "<group>"; };
 		2F25D8371DA19FCEA5B98BB4 /* HistoryRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRowView.swift; sourceTree = "<group>"; };
@@ -81,7 +77,6 @@
 		54D65289848AACB7447DA56F /* UserIdentifierProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserIdentifierProviding.swift; sourceTree = "<group>"; };
 		55191D90901604834153AEE9 /* HTTPBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPBody.swift; sourceTree = "<group>"; };
 		5602A1793A647714D5C73036 /* ChatHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryStore.swift; sourceTree = "<group>"; };
-		5C730E7B8FCA26A98FFF59AF /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		5D9A5D8BB9D4C2D1B3A0FC31 /* VideoAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAPIService.swift; sourceTree = "<group>"; };
 		5E39C83CA16B3BAC79A931E2 /* ScreenHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeaderView.swift; sourceTree = "<group>"; };
 		6B0853723BC68C276C211DB0 /* VideoHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoHistoryStore.swift; sourceTree = "<group>"; };
@@ -91,7 +86,6 @@
 		883D553FCCFB6EE5BB48BA0D /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		8E5E8DB987A3B9A4976C8171 /* GradientIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientIcon.swift; sourceTree = "<group>"; };
 		90A177EAD88D0A6F6F500CA7 /* UIColor+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+App.swift"; sourceTree = "<group>"; };
-		A0A56B9AE9CAC1110C8C6857 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A81A812E2F1E960C0D6B9A00 /* VideoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViews.swift; sourceTree = "<group>"; };
 		A9EE9553070E9261F13BD90D /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		B6F4769D96D1C0E3809CC937 /* apphud_paywalls_fallback.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = apphud_paywalls_fallback.json; sourceTree = "<group>"; };
@@ -111,7 +105,6 @@
 		EE57A59528754E6ABB98F1B4 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		EE74F69BD797D4CEA686BBCF /* UIFont+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+App.swift"; sourceTree = "<group>"; };
 		EE86BC1303D66DB262621003 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		F1DED1B98D777786E6B66BDE /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		FC30EBC727CA5707CCACF432 /* AIStudio.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AIStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -150,7 +143,6 @@
 				B6F4769D96D1C0E3809CC937 /* apphud_paywalls_fallback.json */,
 				02403E784169A9254D41935F /* Assets.xcassets */,
 				306FA028EB256700D55EC87A /* Fonts */,
-				F77DE04B15D7568EFFF3918A /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -238,7 +230,6 @@
 				BEBEF5CD0DA2CE45FB2E44CF /* AppConfig.swift */,
 				75CE4B78C2BF4BB4CC5EECA5 /* Layout.swift */,
 				0A2E31F41AF078B2426FBEB5 /* Secrets.swift */,
-				2346599414A193B9497F019F /* String+Localized.swift */,
 				90A177EAD88D0A6F6F500CA7 /* UIColor+App.swift */,
 				EE74F69BD797D4CEA686BBCF /* UIFont+App.swift */,
 			);
@@ -328,9 +319,6 @@
 			knownRegions = (
 				Base,
 				en,
-				es,
-				ru,
-				"zh-Hans",
 			);
 			mainGroup = 657EABC4DFD996CDC79FED8B;
 			minimizedProjectReferenceProxies = 1;
@@ -357,7 +345,6 @@
 				D2CBD6A691A979F302F09050 /* Inter-Medium.ttf in Resources */,
 				67954D789ED9291583439F93 /* Inter-Regular.ttf in Resources */,
 				BCA3FF1C92FB53E4AFB2D33C /* Inter-SemiBold.ttf in Resources */,
-				A60C922B13CCEE9649F8D74A /* Localizable.strings in Resources */,
 				2E67E5ECEC734F544AF69B37 /* apphud_paywalls_fallback.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -397,7 +384,6 @@
 				8AE13025225B8AC75033E74F /* SceneDelegate.swift in Sources */,
 				4A89914EDE02F74AF3E43B52 /* ScreenHeaderView.swift in Sources */,
 				C81D7D3DDB668D92EE537B57 /* Secrets.swift in Sources */,
-				3641C35A3D683A76DC430490 /* String+Localized.swift in Sources */,
 				955C4E94A6492230DCCA11A4 /* SubscriptionService.swift in Sources */,
 				63F936E8AC58470B3D893CA0 /* UIColor+App.swift in Sources */,
 				EB6CF30C33BD59DC3DC99915 /* UIFont+App.swift in Sources */,
@@ -414,20 +400,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		F77DE04B15D7568EFFF3918A /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				26EA9FB38C7F6A64B009DC95 /* en */,
-				F1DED1B98D777786E6B66BDE /* es */,
-				A0A56B9AE9CAC1110C8C6857 /* ru */,
-				5C730E7B8FCA26A98FFF59AF /* zh-Hans */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		0419AE793EB4197681754F0F /* Release */ = {

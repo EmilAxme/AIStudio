@@ -7,7 +7,6 @@ iOS-приложение по тестовому заданию: AI-чат (Dola
 - UIKit, Auto Layout кодом, без сторибордов. MVC + сервисный слой.
 - Зависимость ApphudSDK — через SPM. `.xcodeproj` закоммичен (открывается напрямую); `project.yml` — спека XcodeGen для регенерации проекта (опционально, ревьюеру не нужна).
 - Шрифт Inter (в `Resources/Fonts`), иконки в `Assets.xcassets`.
-- Локализация интерфейса: en / es / zh-Hans / ru (`Localizable.strings`).
 - История чата и видео сохраняется локально (UserDefaults + постеры в Caches).
 
 ```
