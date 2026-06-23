@@ -1,7 +1,10 @@
-AIStudio.xcodeproj/
 DerivedData/
 build/
 .build/
 .swiftpm/
 .DS_Store
 _audit/
+xcuserdata/
+
+# Local secrets (provide via Secrets.example.swift)
+Secrets.swift

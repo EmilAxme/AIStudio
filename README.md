@@ -2,22 +2,13 @@
 
 iOS-приложение по тестовому заданию: AI-чат (Dola) и генератор видео (PixVerse) + экран подписки (Apphud). UIKit, программная вёрстка, iOS 16+.
 
-## Запуск
-
-```sh
-brew install xcodegen        # если нет
-cd AIStudio
-xcodegen generate            # .xcodeproj не коммитится, генерируется
-open AIStudio.xcodeproj
-```
-
-Таргет `AIStudio`, симулятор iPhone, Run. Bundle id `com.labs.fviu`.
-
 ## Стек и архитектура
 
 - UIKit, Auto Layout кодом, без сторибордов. MVC + сервисный слой.
-- XcodeGen (`project.yml`), зависимость ApphudSDK через SPM.
+- Зависимость ApphudSDK — через SPM. `.xcodeproj` закоммичен (открывается напрямую); `project.yml` — спека XcodeGen для регенерации проекта (опционально, ревьюеру не нужна).
 - Шрифт Inter (в `Resources/Fonts`), иконки в `Assets.xcassets`.
+- Локализация интерфейса: en / es / zh-Hans / ru (`Localizable.strings`).
+- История чата и видео сохраняется локально (UserDefaults + постеры в Caches).
 
 ```
 App/          AppDelegate (Apphud.start), SceneDelegate, Info.plist
@@ -47,7 +38,7 @@ Support/      AppConfig (URL/ключи), палитра, шрифты, Layout
 ## Допущения и ограничения
 
 - Премиум закрывает генерацию видео (явной точки гейтинга в макете нет).
-- В выданном проекте Apphud продукты не заведены, поэтому в `Resources/AIStudio.storekit` лежат репрезентативные id (`com.labs.fviu.premium.yearly/monthly`). Реальные id продуктов paywall `main` печатаются в DEBUG-лог при загрузке paywall; их нужно подставить в `.storekit` и в схему (Run -> Options -> StoreKit Configuration).
+- В выданном проекте Apphud продукты не заведены, поэтому в `Resources/AIStudio.storekit` лежат репрезентативные id (`com.labs.fviu.premium.yearly/monthly`). Реальные id продуктов paywall `main` берутся из дашборда Apphud и подставляются в `.storekit` и в схему (Run -> Options -> StoreKit Configuration).
 - Sandbox PixVerse возвращает фиктивный `video_url` (`example.com/.../sample.mp4`), поэтому реальное проигрывание/скачивание на нём не отрабатывает.
-- Bearer-токен задан в `AppConfig` (так пришёл в задании). В проде выносится в xcconfig/Keychain; токен с ролью ADMIN в клиенте держать нельзя.
+- Bearer-токен вынесен в `Secrets.swift` (в `.gitignore`, в репозиторий не коммитится) — создаётся из `Secrets.example.swift`, значение берётся из задания. Apphud-ключ в `AppConfig` — публикуемый клиентский ключ (нормально держать в клиенте). Сам ADMIN-токен — тестовый из задания; в проде токен выдавался бы per-user и хранился в Keychain.
 - `ai-writing` из схемы Dola не подключён: отдельного экрана нет.

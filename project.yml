@@ -21,6 +21,7 @@ targets:
       - path: AIStudio
         excludes:
           - "Resources/AIStudio.storekit"
+          - "Support/Secrets.example.swift"
       # Kept in the project (for the scheme's StoreKit config) but out of any build phase.
       - path: AIStudio/Resources/AIStudio.storekit
         buildPhase: none
