@@ -242,6 +242,7 @@ final class ChatComposerView: UIView {
 
     let textField = UITextField()
     var onSend: ((String) -> Void)?
+    var onMic: (() -> Void)?
 
     var isSendEnabled = true {
         didSet {
@@ -401,7 +402,7 @@ final class ChatComposerView: UIView {
     @objc private func sendTapped() {
         guard isSendEnabled else { return }
         let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty else { onMic?(); return }
         textField.text = nil
         applySendState(false, animated: true)
         onSend?(text)

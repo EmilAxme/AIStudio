@@ -3,14 +3,21 @@ import AVKit
 
 final class HistoryViewController: UIViewController {
     private let navTitle: String
-    private let sections: [HistorySection]
-    private let gridImages: [UIImage]?
+    private var sections: [HistorySection]
+    private var gridImages: [UIImage]?
     private let emptyIcon: String
     private let emptyTitle: String
     private let emptySubtitle: String
 
+    private let spinner = UIActivityIndicatorView(style: .large)
+    private weak var headerView: UIView?
+    private var loadTask: Task<Void, Never>?
+    var asyncLoader: (() async -> [HistorySection])?
+
     var onSelectItem: ((HistoryItem) -> Void)?
     var onSelectGridIndex: ((Int) -> Void)?
+
+    deinit { loadTask?.cancel() }
 
     init(title: String, sections: [HistorySection], gridImages: [UIImage]? = nil, emptyIcon: String, emptyTitle: String, emptySubtitle: String) {
         self.navTitle = title
@@ -35,12 +42,37 @@ final class HistoryViewController: UIViewController {
         }
         header.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(header)
+        headerView = header
+        spinner.color = .white
+        spinner.hidesWhenStopped = true
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(spinner)
         NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            header.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
 
+        if let asyncLoader {
+            spinner.startAnimating()
+            loadTask = Task { [weak self] in
+                guard let self else { return }
+                let loaded = await asyncLoader()
+                if Task.isCancelled { return }
+                await MainActor.run {
+                    self.spinner.stopAnimating()
+                    self.sections = loaded
+                    self.buildBody(below: header)
+                }
+            }
+        } else {
+            buildBody(below: header)
+        }
+    }
+
+    private func buildBody(below header: UIView) {
         if let grid = gridImages, !grid.isEmpty {
             setupGrid(below: header, images: grid)
         } else if sections.isEmpty {
@@ -221,18 +253,70 @@ final class HistoryViewController: UIViewController {
 
     static func chat(empty: Bool = false) -> HistoryViewController {
         let store = AppServices.chatHistory
+        let service = AppServices.chat
         let vc = HistoryViewController(
             title: "AI Chat History",
-            sections: empty ? [] : buildSections(from: store.sessions()),
+            sections: [],
             emptyIcon: "emptyChats",
             emptyTitle: "No chats yet",
             emptySubtitle: "Your conversations will appear here"
         )
+        if !empty {
+            vc.asyncLoader = {
+                if let remote = try? await service.chats(), !remote.isEmpty {
+                    return buildSections(fromRemote: remote)
+                }
+                return buildSections(from: store.sessions())
+            }
+        }
         vc.onSelectItem = { [weak vc] item in
-            guard let session = store.session(id: item.id) else { return }
-            vc?.navigationController?.pushViewController(ChatViewController(session: session), animated: true)
+            if let remoteID = item.remoteID {
+                vc?.navigationController?.pushViewController(
+                    ChatViewController(remoteChatID: remoteID, title: item.title, personaID: item.personaID), animated: true)
+            } else if let session = store.session(id: item.id) {
+                vc?.navigationController?.pushViewController(
+                    ChatViewController(session: session), animated: true)
+            }
         }
         return vc
+    }
+
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    private static func buildSections(fromRemote chats: [DolaChatSummary]) -> [HistorySection] {
+        let calendar = Calendar.current
+        let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale(identifier: "en_US")
+        timeFormatter.dateFormat = "h:mm a"
+        let dayFormatter = DateFormatter()
+        dayFormatter.locale = Locale(identifier: "en_US")
+        dayFormatter.dateFormat = "MMMM d"
+
+        func bucket(for date: Date) -> String {
+            if calendar.isDateInToday(date) { return "Today" }
+            if calendar.isDateInYesterday(date) { return "Yesterday" }
+            return dayFormatter.string(from: date)
+        }
+
+        var order: [String] = []
+        var grouped: [String: [HistoryItem]] = [:]
+        for chat in chats {
+            let date = chat.updatedAt.flatMap { isoFormatter.date(from: $0) }
+            let key = date.map(bucket) ?? "Recent"
+            if grouped[key] == nil { order.append(key) }
+            let title = (chat.title?.isEmpty == false) ? chat.title! : (chat.lastMessagePreview ?? "New chat")
+            grouped[key, default: []].append(HistoryItem(
+                title: title,
+                time: date.map { timeFormatter.string(from: $0) } ?? "",
+                remoteID: chat.chatId,
+                personaID: chat.personaId
+            ))
+        }
+        return order.map { HistorySection(title: $0, items: grouped[$0] ?? []) }
     }
 
     static func video(empty: Bool = false) -> HistoryViewController {

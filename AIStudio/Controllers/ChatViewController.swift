@@ -14,6 +14,9 @@ final class ChatViewController: UIViewController {
     private let createdAt: Date
     private var userDidSend = false
     private var chatID = UUID().uuidString
+    private var personaID: Int?
+    private var personaTitle: String?
+    private var remoteChatID: String?
     private var replyState: ViewState = .idle {
         didSet { composer.isSendEnabled = (replyState != .loading) }
     }
@@ -43,6 +46,30 @@ final class ChatViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
+    init(persona: DolaPersona, chatService: ChatServicing = AppServices.chat, history: ChatHistoryStore = AppServices.chatHistory) {
+        self.chatService = chatService
+        self.history = history
+        self.sessionID = UUID()
+        self.createdAt = Date()
+        self.personaID = persona.id
+        self.personaTitle = persona.title
+        messages = []
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    init(remoteChatID: String, title: String?, personaID: Int? = nil, chatService: ChatServicing = AppServices.chat, history: ChatHistoryStore = AppServices.chatHistory) {
+        self.chatService = chatService
+        self.history = history
+        self.sessionID = UUID()
+        self.createdAt = Date()
+        self.remoteChatID = remoteChatID
+        self.personaTitle = title
+        self.personaID = personaID
+        messages = []
+        super.init(nibName: nil, bundle: nil)
+        self.chatID = remoteChatID
+    }
+
     required init?(coder: NSCoder) { nil }
 
     deinit { replyTask?.cancel() }
@@ -55,6 +82,25 @@ final class ChatViewController: UIViewController {
         setupMessages()
         setupEmptyState()
         renderMessages(animated: false)
+        if remoteChatID != nil { loadRemoteMessages() }
+    }
+
+    private func loadRemoteMessages() {
+        guard let id = remoteChatID else { return }
+        replyState = .loading
+        renderMessages(animated: false)
+        replyTask = Task { [weak self] in
+            guard let self else { return }
+            let loaded = (try? await self.chatService.messages(chatID: id)) ?? []
+            if Task.isCancelled { return }
+            await MainActor.run {
+                self.messages = loaded
+                self.renderedMessageCount = 0
+                self.messagesStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                self.replyState = .idle
+                self.renderMessages(animated: false)
+            }
+        }
     }
 
     private func setupEmptyState() {
@@ -95,24 +141,38 @@ final class ChatViewController: UIViewController {
         ])
 
         let title = UILabel()
-        title.text = "AI Chat"
+        title.text = personaTitle ?? "AI Chat"
         title.font = AppFont.font(17, .semibold)
         title.textColor = .white
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.down"))
+        chevron.tintColor = AppColor.secondaryText
+        chevron.contentMode = .scaleAspectFit
+        chevron.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 10, weight: .semibold)
+        chevron.setContentHuggingPriority(.required, for: .horizontal)
+        let titleRow = UIStackView(arrangedSubviews: [title, chevron])
+        titleRow.axis = .horizontal
+        titleRow.spacing = 5
+        titleRow.alignment = .center
         let date = UILabel()
         date.text = Self.headerDateFormatter.string(from: createdAt)
         date.font = AppFont.font(12, .regular)
         date.textColor = AppColor.secondaryText
-        let textStack = UIStackView(arrangedSubviews: [title, date])
+        let textStack = UIStackView(arrangedSubviews: [titleRow, date])
         textStack.axis = .vertical
         textStack.spacing = 1
+        textStack.isUserInteractionEnabled = false
 
         let magic = UIButton(type: .system)
         magic.setImage(UIImage(named: "icUnion"), for: .normal)
         magic.tintColor = .white
         magic.addTarget(self, action: #selector(showHistory), for: .touchUpInside)
 
+        let personaTapButton = UIControl()
+        personaTapButton.translatesAutoresizingMaskIntoConstraints = false
+        personaTapButton.addTarget(self, action: #selector(openPersonas), for: .touchUpInside)
+
         view.addSubviews(header)
-        header.addSubviews(back, iconGradient, textStack, magic)
+        header.addSubviews(back, iconGradient, textStack, magic, personaTapButton)
         NSLayoutConstraint.activate([
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -131,8 +191,34 @@ final class ChatViewController: UIViewController {
             magic.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -16),
             magic.centerYAnchor.constraint(equalTo: back.centerYAnchor),
             magic.widthAnchor.constraint(equalToConstant: 34),
-            magic.heightAnchor.constraint(equalToConstant: 34)
+            magic.heightAnchor.constraint(equalToConstant: 34),
+            personaTapButton.leadingAnchor.constraint(equalTo: iconGradient.leadingAnchor),
+            personaTapButton.trailingAnchor.constraint(equalTo: textStack.trailingAnchor),
+            personaTapButton.topAnchor.constraint(equalTo: back.topAnchor),
+            personaTapButton.bottomAnchor.constraint(equalTo: back.bottomAnchor)
         ])
+    }
+
+    private func startVoice() {
+        let voice = VoiceChatViewController(chatID: chatID, personaID: personaID, personaTitle: personaTitle)
+        voice.modalPresentationStyle = .fullScreen
+        present(voice, animated: true)
+    }
+
+    @objc private func openPersonas() {
+        let personas = PersonasViewController()
+        personas.onSelect = { [weak self, weak personas] persona in
+            guard let self, let nav = self.navigationController, let personas else { return }
+            let chat = ChatViewController(persona: persona)
+            var stack = nav.viewControllers
+            if let index = stack.firstIndex(of: personas) {
+                stack[index] = chat
+                nav.setViewControllers(stack, animated: true)
+            } else {
+                nav.pushViewController(chat, animated: true)
+            }
+        }
+        navigationController?.pushViewController(personas, animated: true)
     }
 
     private func setupMessages() {
@@ -167,6 +253,7 @@ final class ChatViewController: UIViewController {
     private func setupComposer() {
         composer.translatesAutoresizingMaskIntoConstraints = false
         composer.onSend = { [weak self] text in self?.send(text: text) }
+        composer.onMic = { [weak self] in self?.startVoice() }
         view.addSubview(composer)
         NSLayoutConstraint.activate([
             composer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -288,7 +375,7 @@ final class ChatViewController: UIViewController {
         replyTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let reply = try await self.chatService.send(message: text, chatID: self.chatID)
+                let reply = try await self.chatService.send(message: text, chatID: self.chatID, personaID: self.personaID)
                 try Task.checkCancellation()
                 await MainActor.run {
                     self.chatID = reply.chatID
