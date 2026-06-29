@@ -102,6 +102,28 @@ final class VideoResultViewController: UIViewController {
         replace.addTarget(self, action: #selector(replaceTapped), for: .touchUpInside)
         resultImageView.addSubview(replace)
 
+        let extend = UIControl()
+        extend.backgroundColor = UIColor(white: 0.32, alpha: 0.55)
+        extend.layer.cornerRadius = 20
+        extend.translatesAutoresizingMaskIntoConstraints = false
+        let extendIcon = UIImageView(image: UIImage(systemName: "plus"))
+        extendIcon.tintColor = .white
+        extendIcon.contentMode = .scaleAspectFit
+        extendIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 13, weight: .bold)
+        let extendLabel = UILabel()
+        extendLabel.text = "Extend"
+        extendLabel.textColor = .white
+        extendLabel.font = AppFont.medium(14)
+        let extendStack = UIStackView(arrangedSubviews: [extendIcon, extendLabel])
+        extendStack.axis = .horizontal
+        extendStack.spacing = 5
+        extendStack.alignment = .center
+        extendStack.isUserInteractionEnabled = false
+        extendStack.translatesAutoresizingMaskIntoConstraints = false
+        extend.addSubview(extendStack)
+        extend.addTarget(self, action: #selector(extendTapped), for: .touchUpInside)
+        resultImageView.addSubview(extend)
+
         NSLayoutConstraint.activate([
             play.centerXAnchor.constraint(equalTo: resultImageView.centerXAnchor),
             play.centerYAnchor.constraint(equalTo: resultImageView.centerYAnchor),
@@ -115,7 +137,14 @@ final class VideoResultViewController: UIViewController {
             replaceIcon.heightAnchor.constraint(equalToConstant: 18),
             replaceStack.leadingAnchor.constraint(equalTo: replace.leadingAnchor, constant: 14),
             replaceStack.trailingAnchor.constraint(equalTo: replace.trailingAnchor, constant: -14),
-            replaceStack.centerYAnchor.constraint(equalTo: replace.centerYAnchor)
+            replaceStack.centerYAnchor.constraint(equalTo: replace.centerYAnchor),
+
+            extend.topAnchor.constraint(equalTo: resultImageView.topAnchor, constant: 12),
+            extend.leadingAnchor.constraint(equalTo: resultImageView.leadingAnchor, constant: 12),
+            extend.heightAnchor.constraint(equalToConstant: 40),
+            extendStack.leadingAnchor.constraint(equalTo: extend.leadingAnchor, constant: 14),
+            extendStack.trailingAnchor.constraint(equalTo: extend.trailingAnchor, constant: -14),
+            extendStack.centerYAnchor.constraint(equalTo: extend.centerYAnchor)
         ])
 
         shareButton.setTitle("Share", for: .normal)
@@ -187,6 +216,33 @@ final class VideoResultViewController: UIViewController {
         generate()
     }
 
+    @objc private func extendTapped() {
+        guard let url = resultURL else { return }
+        generationTask?.cancel()
+        downloadTask?.cancel()
+        state = .loading
+        generationTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                try Task.checkCancellation()
+                let newURL = try await self.videoService.extendVideo(prompt: self.request.prompt, videoData: data)
+                try Task.checkCancellation()
+                await MainActor.run {
+                    self.resultURL = newURL
+                    self.state = .success
+                    self.saveToHistory(url: newURL)
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    self.state = .error((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
+                }
+            }
+        }
+    }
+
     // MARK: - Generation
 
     private func generate() {
@@ -199,12 +255,19 @@ final class VideoResultViewController: UIViewController {
         let prompt = request.prompt
         let aspectRatio = request.aspectRatio
         let quality = request.quality
+        let templateId = request.templateId
+        let transition = request.transition
+        let allImages = request.images
 
         generationTask = Task { [weak self] in
             guard let self else { return }
             let imageData = await Task.detached { image?.jpegData(compressionQuality: 0.9) }.value
+            let transitionData: [Data] = transition
+                ? await Task.detached { allImages.compactMap { $0.jpegData(compressionQuality: 0.9) } }.value
+                : []
             let parameters = VideoGenerationParameters(
-                prompt: prompt, imageData: imageData, aspectRatio: aspectRatio, quality: quality
+                prompt: prompt, imageData: imageData, aspectRatio: aspectRatio, quality: quality,
+                templateId: templateId, transitionImagesData: transitionData
             )
             do {
                 let url = try await self.videoService.generate(parameters)
@@ -228,7 +291,7 @@ final class VideoResultViewController: UIViewController {
     private func saveToHistory(url: URL) {
         history.save(
             id: historyItemID,
-            title: request.prompt,
+            title: request.title,
             templateImageName: request.imageName,
             videoURL: url,
             poster: resultImageView.image,
@@ -358,7 +421,7 @@ final class VideoResultViewController: UIViewController {
     private func presentShareSheet() {
         let items: [Any] = [resultURL as Any, resultImageView.image as Any].compactMap { $0 }
         guard !items.isEmpty else { return }
-        let sheet = UIActivityViewController(activityItems: [items.first!], applicationActivities: nil)
+        let sheet = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(sheet, animated: true)
     }
 
@@ -372,6 +435,7 @@ final class VideoResultViewController: UIViewController {
                 try Task.checkCancellation()
                 let temp = FileManager.default.temporaryDirectory
                     .appendingPathComponent("aistudio-\(UUID().uuidString).mp4")
+                defer { try? FileManager.default.removeItem(at: temp) }
                 try data.write(to: temp)
                 try Task.checkCancellation()
                 try await Self.saveVideoToPhotoLibrary(at: temp)

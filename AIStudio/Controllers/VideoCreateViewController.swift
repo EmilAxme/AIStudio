@@ -1,19 +1,9 @@
 import UIKit
 import PhotosUI
 
-struct VideoTemplate {
-    let title: String
-    let imageName: String
-    let requiredPhotos: Int
-}
-
 // MARK: - VideoCreateViewController
 final class VideoCreateViewController: UIViewController {
-    private let templates: [VideoTemplate] = [
-        VideoTemplate(title: "Clay Fool", imageName: "ClayFool", requiredPhotos: 1),
-        VideoTemplate(title: "Astro Duo", imageName: "AstroGirl", requiredPhotos: 2),
-        VideoTemplate(title: "Dreamy", imageName: "GalleryGirl", requiredPhotos: 1)
-    ]
+    private let templates: [VideoTemplate]
     private var currentIndex = 0
     private var currentTemplate: VideoTemplate { templates[currentIndex] }
 
@@ -29,11 +19,14 @@ final class VideoCreateViewController: UIViewController {
     private var pendingGatedCreate = false
 
     private let subscription: SubscriptionServicing
+    private let subscriptionRequired: Bool
 
     private let formatOptions = ["16:9", "9:16", "1:1"]
-    private let qualityOptions = ["540p", "720p", "1080p", "4K"]
+    private let qualityOptions = ["540p", "720p", "1080p"]
 
-    init(subscription: SubscriptionServicing = AppServices.subscription) {
+    init(template: VideoTemplate? = nil, subscriptionRequired: Bool = false, subscription: SubscriptionServicing = AppServices.subscription) {
+        self.templates = [template ?? VideoTemplateCatalog.fallback[0]]
+        self.subscriptionRequired = subscriptionRequired
         self.subscription = subscription
         super.init(nibName: nil, bundle: nil)
     }
@@ -71,6 +64,16 @@ final class VideoCreateViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         resumePendingCreateIfUnlocked()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        carousel.visibleCells.forEach { ($0 as? CarouselImageCell)?.play() }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        carousel.visibleCells.forEach { ($0 as? CarouselImageCell)?.pause() }
     }
 
     private func setupView() {
@@ -220,7 +223,7 @@ final class VideoCreateViewController: UIViewController {
 
     @objc private func createTapped() {
         guard createButton.isEnabled else { return }
-        guard subscription.isPremium else {
+        guard !subscriptionRequired || subscription.isPremium else {
             pendingGatedCreate = true
             presentPaywall { [weak self] in self?.resumePendingCreateIfUnlocked() }
             return
@@ -236,11 +239,14 @@ final class VideoCreateViewController: UIViewController {
 
     private func proceedToResult() {
         let request = VideoRequest(
-            prompt: currentTemplate.title,
-            imageName: currentTemplate.imageName,
+            title: currentTemplate.title,
+            prompt: currentTemplate.prompt,
+            imageName: currentTemplate.posterName ?? "",
             images: selectedImages.compactMap { $0 },
             aspectRatio: format.value,
-            quality: quality.value
+            quality: quality.value,
+            templateId: currentTemplate.templateId,
+            transition: currentTemplate.transition
         )
         navigationController?.pushViewController(VideoResultViewController(request: request), animated: true)
     }
@@ -261,8 +267,16 @@ extension VideoCreateViewController: UICollectionViewDataSource, UICollectionVie
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CarouselImageCell.reuseIdentifier, for: indexPath) as! CarouselImageCell
-        cell.configure(image: UIImage(named: templates[indexPath.item].imageName))
+        cell.configure(template: templates[indexPath.item])
         return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        (cell as? CarouselImageCell)?.play()
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        (cell as? CarouselImageCell)?.pause()
     }
 
     func collectionView(_ collectionView: UICollectionView, layout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

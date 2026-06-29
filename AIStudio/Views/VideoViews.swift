@@ -1,9 +1,66 @@
 import UIKit
+import AVFoundation
 
+// MARK: - LoopingVideoView
+/// Hosts an AVPlayerLayer that plays a bundled clip on a seamless loop (muted).
+/// Playback is driven externally so only on-screen cells keep a player alive.
+final class LoopingVideoView: UIView {
+    override class var layerClass: AnyClass { AVPlayerLayer.self }
+    private var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
+    private var player: AVQueuePlayer?
+    private var looper: AVPlayerLooper?
+    private(set) var sourceKey: String?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        playerLayer.videoGravity = .resizeAspectFill
+        backgroundColor = .clear
+        isUserInteractionEnabled = false
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func load(bundledName: String?) {
+        guard let bundledName,
+              let url = Bundle.main.url(forResource: bundledName, withExtension: "mp4") else { teardown(); return }
+        load(url: url, key: "bundle:" + bundledName)
+    }
+
+    func load(remoteURL: URL?) {
+        guard let remoteURL else { teardown(); return }
+        load(url: remoteURL, key: remoteURL.absoluteString)
+    }
+
+    private func load(url: URL, key: String) {
+        guard key != sourceKey else { return }
+        teardown()
+        sourceKey = key
+        let item = AVPlayerItem(url: url)
+        let queue = AVQueuePlayer(playerItem: item)
+        queue.isMuted = true
+        looper = AVPlayerLooper(player: queue, templateItem: item)
+        player = queue
+        playerLayer.player = queue
+    }
+
+    func play() { player?.play() }
+    func pause() { player?.pause() }
+
+    func teardown() {
+        player?.pause()
+        playerLayer.player = nil
+        looper = nil
+        player = nil
+        sourceKey = nil
+    }
+}
+
+// MARK: - VideoTemplateCell
 final class VideoTemplateCell: UICollectionViewCell {
     static let reuseIdentifier = "VideoTemplateCell"
 
-    private let imageView = UIImageView()
+    private let posterView = UIImageView()
+    private let videoView = LoopingVideoView()
     private let scrim = GradientView(
         colors: [UIColor(hex: 0x1F191F, alpha: 0), UIColor(hex: 0x1F191F, alpha: 0.6)],
         startPoint: CGPoint(x: 0.5, y: 0.4),
@@ -16,16 +73,19 @@ final class VideoTemplateCell: UICollectionViewCell {
         contentView.layer.cornerRadius = 24
         contentView.clipsToBounds = true
         contentView.backgroundColor = AppColor.surface
-        imageView.contentMode = .scaleAspectFill
-        imageView.translatesAutoresizingMaskIntoConstraints = false
+        posterView.contentMode = .scaleAspectFill
+        posterView.translatesAutoresizingMaskIntoConstraints = false
+        videoView.translatesAutoresizingMaskIntoConstraints = false
         scrim.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = AppFont.regular(16)
         titleLabel.textColor = .white
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(imageView)
+        contentView.addSubview(posterView)
+        contentView.addSubview(videoView)
         contentView.addSubview(scrim)
         contentView.addSubview(titleLabel)
-        imageView.pinToEdges(of: contentView)
+        posterView.pinToEdges(of: contentView)
+        videoView.pinToEdges(of: contentView)
         NSLayoutConstraint.activate([
             scrim.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             scrim.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -38,9 +98,24 @@ final class VideoTemplateCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) { nil }
 
-    func configure(image: UIImage?, title: String) {
-        imageView.image = image
-        titleLabel.text = title
+    func configure(template: VideoTemplate) {
+        titleLabel.text = template.title
+        if let url = template.previewURL {
+            posterView.image = nil
+            videoView.load(remoteURL: url)
+        } else {
+            posterView.image = template.posterName.flatMap { UIImage(named: $0) }
+            videoView.load(bundledName: template.previewVideoName)
+        }
+    }
+
+    func play() { videoView.play() }
+    func pause() { videoView.pause() }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        videoView.teardown()
+        posterView.image = nil
     }
 }
 
@@ -48,6 +123,7 @@ final class VideoTemplateCell: UICollectionViewCell {
 final class CarouselImageCell: UICollectionViewCell {
     static let reuseIdentifier = "CarouselImageCell"
     private let imageView = UIImageView()
+    private let videoView = LoopingVideoView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -56,17 +132,39 @@ final class CarouselImageCell: UICollectionViewCell {
         contentView.clipsToBounds = true
         contentView.backgroundColor = AppColor.surface
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 16
-        imageView.layer.cornerCurve = .continuous
-        imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        videoView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
+        contentView.addSubview(videoView)
         imageView.pinToEdges(of: contentView)
+        videoView.pinToEdges(of: contentView)
     }
 
     required init?(coder: NSCoder) { nil }
 
-    func configure(image: UIImage?) { imageView.image = image }
+    func configure(image: UIImage?) {
+        imageView.image = image
+        videoView.teardown()
+    }
+
+    func configure(template: VideoTemplate) {
+        if let url = template.previewURL {
+            imageView.image = nil
+            videoView.load(remoteURL: url)
+        } else {
+            imageView.image = template.posterName.flatMap { UIImage(named: $0) }
+            videoView.load(bundledName: template.previewVideoName)
+        }
+    }
+
+    func play() { videoView.play() }
+    func pause() { videoView.pause() }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        videoView.teardown()
+        imageView.image = nil
+    }
 }
 
 // MARK: - FormOptionView
