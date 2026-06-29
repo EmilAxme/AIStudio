@@ -130,15 +130,19 @@ final class HomeViewController: UIViewController {
         settingsButton.addTarget(self, action: #selector(showPaywall), for: .touchUpInside)
         let chatTap = UITapGestureRecognizer(target: self, action: #selector(showChatEmpty))
         askControl.addGestureRecognizer(chatTap)
-        writingCard.addTarget(self, action: #selector(showChat), for: .touchUpInside)
-        summaryCard.addTarget(self, action: #selector(showChat), for: .touchUpInside)
+        writingCard.addTarget(self, action: #selector(showWriting), for: .touchUpInside)
+        summaryCard.addTarget(self, action: #selector(showSummarize), for: .touchUpInside)
         featuredCard.addTarget(self, action: #selector(showVideoGallery), for: .touchUpInside)
     }
 
     // MARK: - Actions
 
-    @objc private func showChat() {
-        navigationController?.pushViewController(ChatViewController(), animated: true)
+    @objc private func showWriting() {
+        navigationController?.pushViewController(AIWritingViewController(initialAction: .improve), animated: true)
+    }
+
+    @objc private func showSummarize() {
+        navigationController?.pushViewController(AIWritingViewController(initialAction: .shorten), animated: true)
     }
 
     @objc private func showChatEmpty() {
