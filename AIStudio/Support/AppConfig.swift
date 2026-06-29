@@ -3,6 +3,7 @@ import Foundation
 // MARK: - AppConfig
 enum AppConfig {
     enum API {
+        static let rootBaseURL = URL(string: "https://nebulaapps.site")!
         static let chatBaseURL = URL(string: "https://nebulaapps.site/dola")!
         static let videoBaseURL = URL(string: "https://nebulaapps.site/pixverse")!
         static let bearerToken = Secrets.bearerToken

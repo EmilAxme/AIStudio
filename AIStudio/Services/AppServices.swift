@@ -6,6 +6,8 @@ enum AppServices {
     static let network: NetworkService = URLSessionNetworkService()
     static let chat: ChatServicing = ChatAPIService(network: network, userProvider: userIdentifier)
     static let video: VideoGenerationServicing = VideoAPIService(network: network, userProvider: userIdentifier)
+    static let videoTemplates: VideoTemplateProviding = VideoTemplateService(network: network, userProvider: userIdentifier)
+    static let aiWriting: AiWritingProviding = AiWritingService(network: network, userProvider: userIdentifier)
     static let subscription = SubscriptionService()
     static let chatHistory = ChatHistoryStore()
     static let videoHistory = VideoHistoryStore()
