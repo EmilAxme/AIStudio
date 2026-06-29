@@ -1,10 +1,30 @@
 import UIKit
 
 final class VideoGalleryViewController: UIViewController {
-    private let categories = ["Popular", "Funny", "Sad", "Trends", "Dreamy"]
-    private var selectedCategory = "Popular"
+    private let templateProvider: VideoTemplateProviding
+
+    private var allTemplates: [VideoTemplate] = []
+    private var categories: [String] = []
+    private var selectedCategory = VideoTemplateGallery.popularTitle
+    private var items: [VideoTemplate] = []
+    private var subscriptionEnabled = false
+    private var loadTask: Task<Void, Never>?
+
     private let chipScroll = UIScrollView()
     private let chipStack = UIStackView()
+    private let spinner = UIActivityIndicatorView(style: .large)
+    private let creditsPill = UIView()
+    private let creditsLabel = UILabel()
+    private var balanceTask: Task<Void, Never>?
+
+    init(templateProvider: VideoTemplateProviding = AppServices.videoTemplates) {
+        self.templateProvider = templateProvider
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    deinit { loadTask?.cancel(); balanceTask?.cancel() }
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -27,6 +47,20 @@ final class VideoGalleryViewController: UIViewController {
         let navBottom = setupNavBar()
         let chipsBottom = setupChips(below: navBottom)
         setupCollection(below: chipsBottom)
+        setupSpinner()
+        loadTemplates()
+        fetchBalance()
+    }
+
+    private func fetchBalance() {
+        balanceTask = Task { [weak self] in
+            guard let self, let balance = try? await AppServices.video.balance() else { return }
+            if Task.isCancelled { return }
+            await MainActor.run {
+                self.creditsLabel.text = "\(balance)"
+                self.creditsPill.isHidden = false
+            }
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -40,7 +74,50 @@ final class VideoGalleryViewController: UIViewController {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        playVisibleCells()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        pauseVisibleCells()
+    }
+
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+
+    // MARK: - Loading
+
+    private func loadTemplates() {
+        spinner.startAnimating()
+        loadTask = Task { [weak self] in
+            guard let self else { return }
+            let catalog: VideoCatalog
+            do {
+                catalog = try await self.templateProvider.fetchCatalog()
+            } catch is CancellationError {
+                return
+            } catch {
+                catalog = VideoCatalog(templates: VideoTemplateCatalog.fallback, subscriptionEnabled: false)
+            }
+            if Task.isCancelled { return }
+            await MainActor.run { self.apply(catalog: catalog) }
+        }
+    }
+
+    private func apply(catalog: VideoCatalog) {
+        spinner.stopAnimating()
+        subscriptionEnabled = catalog.subscriptionEnabled
+        allTemplates = [VideoTemplate.blend] + catalog.templates
+        categories = VideoTemplateGallery.categories(from: allTemplates)
+        selectedCategory = categories.first ?? VideoTemplateGallery.popularTitle
+        items = VideoTemplateGallery.items(allTemplates, in: selectedCategory)
+        rebuildChips()
+        collectionView.reloadData()
+        playVisibleCells()
+    }
+
+    // MARK: - Nav bar
 
     private func setupNavBar() -> NSLayoutYAxisAnchor {
         let back = UIButton(type: .system)
@@ -70,7 +147,20 @@ final class VideoGalleryViewController: UIViewController {
         refresh.tintColor = .white
         refresh.addTarget(self, action: #selector(showVideoHistory), for: .touchUpInside)
 
-        view.addSubviews(back, titleStack, refresh)
+        creditsPill.backgroundColor = AppColor.surface
+        creditsPill.layer.cornerRadius = 14
+        creditsPill.isHidden = true
+        creditsPill.translatesAutoresizingMaskIntoConstraints = false
+        let bolt = UIImageView(image: UIImage(systemName: "bolt.fill"))
+        bolt.tintColor = AppColor.pink
+        bolt.contentMode = .scaleAspectFit
+        bolt.translatesAutoresizingMaskIntoConstraints = false
+        creditsLabel.font = AppFont.font(13, .semibold)
+        creditsLabel.textColor = .white
+        creditsLabel.translatesAutoresizingMaskIntoConstraints = false
+        creditsPill.addSubviews(bolt, creditsLabel)
+
+        view.addSubviews(back, titleStack, refresh, creditsPill)
         avatarIcon.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             back.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -88,10 +178,22 @@ final class VideoGalleryViewController: UIViewController {
             refresh.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             refresh.centerYAnchor.constraint(equalTo: back.centerYAnchor),
             refresh.widthAnchor.constraint(equalToConstant: 34),
-            refresh.heightAnchor.constraint(equalToConstant: 34)
+            refresh.heightAnchor.constraint(equalToConstant: 34),
+            creditsPill.trailingAnchor.constraint(equalTo: refresh.leadingAnchor, constant: -8),
+            creditsPill.centerYAnchor.constraint(equalTo: back.centerYAnchor),
+            creditsPill.heightAnchor.constraint(equalToConstant: 28),
+            bolt.leadingAnchor.constraint(equalTo: creditsPill.leadingAnchor, constant: 10),
+            bolt.centerYAnchor.constraint(equalTo: creditsPill.centerYAnchor),
+            bolt.widthAnchor.constraint(equalToConstant: 11),
+            bolt.heightAnchor.constraint(equalToConstant: 13),
+            creditsLabel.leadingAnchor.constraint(equalTo: bolt.trailingAnchor, constant: 5),
+            creditsLabel.trailingAnchor.constraint(equalTo: creditsPill.trailingAnchor, constant: -10),
+            creditsLabel.centerYAnchor.constraint(equalTo: creditsPill.centerYAnchor)
         ])
         return back.bottomAnchor
     }
+
+    // MARK: - Chips
 
     private func setupChips(below: NSLayoutYAxisAnchor) -> NSLayoutYAxisAnchor {
         chipScroll.showsHorizontalScrollIndicator = false
@@ -112,8 +214,12 @@ final class VideoGalleryViewController: UIViewController {
             chipStack.bottomAnchor.constraint(equalTo: chipScroll.contentLayoutGuide.bottomAnchor),
             chipStack.heightAnchor.constraint(equalTo: chipScroll.frameLayoutGuide.heightAnchor)
         ])
-        categories.forEach { chipStack.addArrangedSubview(makeChip(title: $0)) }
         return chipScroll.bottomAnchor
+    }
+
+    private func rebuildChips() {
+        chipStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        categories.forEach { chipStack.addArrangedSubview(makeChip(title: $0)) }
     }
 
     private func makeChip(title: String) -> UIControl {
@@ -146,6 +252,8 @@ final class VideoGalleryViewController: UIViewController {
         return chip
     }
 
+    // MARK: - Collection / spinner
+
     private func setupCollection(below: NSLayoutYAxisAnchor) {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
@@ -157,13 +265,37 @@ final class VideoGalleryViewController: UIViewController {
         ])
     }
 
+    private func setupSpinner() {
+        spinner.color = .white
+        spinner.hidesWhenStopped = true
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
     private func selectCategory(_ category: String) {
         guard category != selectedCategory else { return }
         selectedCategory = category
+        items = VideoTemplateGallery.items(allTemplates, in: category)
         UIView.transition(with: chipStack, duration: 0.2, options: [.transitionCrossDissolve, .allowUserInteraction]) {
-            self.chipStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-            self.categories.forEach { self.chipStack.addArrangedSubview(self.makeChip(title: $0)) }
+            self.rebuildChips()
         }
+        collectionView.reloadData()
+        if !items.isEmpty {
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
+        }
+        playVisibleCells()
+    }
+
+    private func playVisibleCells() {
+        collectionView.visibleCells.forEach { ($0 as? VideoTemplateCell)?.play() }
+    }
+
+    private func pauseVisibleCells() {
+        collectionView.visibleCells.forEach { ($0 as? VideoTemplateCell)?.pause() }
     }
 
     @objc private func showVideoHistory() {
@@ -175,15 +307,25 @@ final class VideoGalleryViewController: UIViewController {
 
 // MARK: - UICollectionViewDataSource, UICollectionViewDelegate
 extension VideoGalleryViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { 12 }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { items.count }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoTemplateCell.reuseIdentifier, for: indexPath) as! VideoTemplateCell
-        cell.configure(image: UIImage(named: "GalleryGirl"), title: "Title")
+        cell.configure(template: items[indexPath.item])
         return cell
     }
 
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        (cell as? VideoTemplateCell)?.play()
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        (cell as? VideoTemplateCell)?.pause()
+    }
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        navigationController?.pushViewController(VideoCreateViewController(), animated: true)
+        navigationController?.pushViewController(
+            VideoCreateViewController(template: items[indexPath.item], subscriptionRequired: subscriptionEnabled),
+            animated: true)
     }
 }
